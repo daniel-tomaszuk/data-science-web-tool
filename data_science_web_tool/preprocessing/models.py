@@ -1,4 +1,6 @@
 from django.db import models
+from django.urls import reverse
+from django.utils.html import format_html
 from preprocessing.data_sources_handlers.csv_source_handler import CsvDataSourceHandler
 
 
@@ -14,7 +16,11 @@ class Data(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    def __str__(self):
+    def get_admin_change_url(self) -> str:
+        url = reverse("admin:preprocessing_data_change", args=[self.pk])
+        return format_html('<a href="{}">{}</a>', url, self.name)
+
+    def __str__(self) -> str:
         return f"Data `{self.name}` created at {self.created_at}"
 
 

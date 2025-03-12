@@ -1,0 +1,10 @@
+{% extends "common/base.html" %}
+
+{% block content %}
+    <h2>Object Details</h2>
+    <p><strong>Name:</strong> {{ object.name }}</p>
+    <p><strong>Created At:</strong> {{ object.created_at|date:"Y-m-d H:i" }}</p>
+    <p><strong>Updated At:</strong> {{ object.updated_at|date:"Y-m-d H:i" }}</p>
+
+    <p><a href="{% url 'preprocessing:data-list' %}">Back to List</a></p>
+{% endblock %}

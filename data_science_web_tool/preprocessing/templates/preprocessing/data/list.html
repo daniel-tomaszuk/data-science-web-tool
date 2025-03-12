@@ -1,0 +1,36 @@
+{% extends "common/base.html" %}
+
+{% block title %}List of uploaded data entries{% endblock %}
+
+{% block content %}
+<h1>Uploaded entries</h1>
+<table border="true">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Details</th>
+            <th>Created At</th>
+            <th>Updated At</th>
+            <th>Admin Page</th>
+            <th>Preprocessing</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for obj in object_list %}
+            <tr>
+                <td>{{ obj.name }}</td>
+                <td>{{ obj }}</td>
+                <td>{{ obj.created_at|date:"Y-m-d H:i" }}</td>
+                <td>{{ obj.updated_at|date:"Y-m-d H:i" }}</td>
+                <td>{{ obj.get_admin_change_url }}</td>
+                <td><a href="{% url 'preprocessing:data-detail' obj.pk %}">Preprocess</a></td>
+            </tr>
+        {% empty %}
+            <tr>
+                <td colspan="3">No objects available.</td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% include "common/pagination.html" with page=page_obj %}
+{% endblock %}
