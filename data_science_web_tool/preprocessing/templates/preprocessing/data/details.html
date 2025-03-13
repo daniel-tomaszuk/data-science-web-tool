@@ -6,5 +6,23 @@
     <p><strong>Created At:</strong> {{ object.created_at|date:"Y-m-d H:i" }}</p>
     <p><strong>Updated At:</strong> {{ object.updated_at|date:"Y-m-d H:i" }}</p>
 
+    <h4>DataFrame.info()</h4>
+    <pre>{{ statistics.info|safe }}</pre>
+
+    <h4>DataFrame.describe().T</h4>
+    {{ statistics.describe|safe }}
+
+    <h4>DataFrame.head(10)</h4>
+    {{ statistics.head|safe }}
+
+    {% if histogram_img %}
+        <h4>Histogram of {{ selected_column }}</h4>
+        <img src="{{ histogram_img }}" alt="Histogram Plot">
+    {% else %}
+        <p>No numeric data available for histogram.</p>
+    {% endif %}
+
+
+
     <p><a href="{% url 'preprocessing:data-list' %}">Back to List</a></p>
 {% endblock %}
