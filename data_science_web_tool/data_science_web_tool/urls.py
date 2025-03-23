@@ -21,5 +21,6 @@ from django.urls import path
 
 urlpatterns = [
     path("admin/", admin.site.urls),
+    path("", include("general.urls", namespace="general")),
     path("preprocessing/", include("preprocessing.urls", namespace="preprocessing")),
 ]

@@ -36,6 +36,7 @@ class DataUploadAdmin(admin.ModelAdmin):
 
     form = FileUploadForm
     list_display = ("file_name", "file_type", "description", "file")
+    readonly_fields = ("file_name", "created_at", "updated_at")
 
 
 @admin.register(Data)
@@ -51,7 +52,6 @@ class DataAdmin(admin.ModelAdmin):
         "created_at",
     )
     fields = (
-        "name",
         "description",
         "data_index",
         "data_columns",
@@ -61,6 +61,7 @@ class DataAdmin(admin.ModelAdmin):
         "updated_at",
     )
     readonly_fields = (
+        "name",
         "short_preview",
         "data_upload",
         "created_at",

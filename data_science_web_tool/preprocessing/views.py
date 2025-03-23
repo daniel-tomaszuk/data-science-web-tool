@@ -2,16 +2,8 @@ from django.contrib import messages
 from django.shortcuts import get_object_or_404
 from django.shortcuts import redirect
 from django.views.generic import DetailView
-from django.views.generic import ListView
 from preprocessing.models import Data
 from rest_framework.generics import CreateAPIView
-
-
-class DataListView(ListView):
-    model = Data
-    queryset = Data.objects.all()
-    template_name = "preprocessing/data/list.html"
-    paginate_by = 3
 
 
 class DataDetailView(DetailView):

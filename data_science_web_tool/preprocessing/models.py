@@ -140,6 +140,7 @@ class DataUpload(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def save(self, *args, **kwargs):
+        self.file_name = self.file.name
         if self.file and self.data is None:
             file_handler = self.FILE_TYPE_PROCESSORS.get(self.file_type)
             if not file_handler:
