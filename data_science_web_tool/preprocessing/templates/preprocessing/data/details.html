@@ -1,0 +1,72 @@
+{% extends "common/base.html" %}
+
+{% block content %}
+    <h2>Object Details</h2>
+    <p><strong>Name:</strong> {{ object.name }}</p>
+    <p><strong>Created At:</strong> {{ object.created_at|date:"Y-m-d H:i" }}</p>
+    <p><strong>Updated At:</strong> {{ object.updated_at|date:"Y-m-d H:i" }}</p>
+
+    <form method="POST" action="{% url 'preprocessing:change-column-type' object.id %}">
+        {% csrf_token %}
+        <h3>Adjust Column Data Types</h3>
+        <table border="1">
+            <thead>
+                <tr>
+                    <th>Column Name</th>
+                    <th>Current Type</th>
+                    <th>New Type</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for col_name, col_type in object.data_columns.items %}
+                    <tr>
+                        <td>{{ col_name }}</td>
+                        <td>{{ col_type|title }}</td>
+                        <td>
+                            <select name="data_type_{{ col_name }}">
+                                {% for data_type in object.SUPPORTED_COLUMN_TYPES %}
+                                    <option value="{{ data_type }}" {% if col_type == data_type %}selected{% endif %}>
+                                        {{ data_type|title }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <button type="submit">Save</button>
+    </form>
+    {% if messages %}
+        <ul class="messages">
+            {% for message in messages %}
+                <li class="{{ message.tags }}">{{ message }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+
+    <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+        <div>
+            <h4>DataFrame.info()</h4>
+            <pre>{{ statistics.info|safe }}</pre>
+        </div>
+
+        <div>
+            <h4>DataFrame.describe().T</h4>
+            {{ statistics.describe|safe }}
+        </div>
+        <div>
+            <h4>DataFrame.head(10)</h4>
+            {{ statistics.head|safe }}
+        </div>
+    </div>
+
+    {% if histogram %}
+        <h4>Histogram of {{ histogram_column }}</h4>
+        <img src="{{ histogram }}" alt="Histogram Plot of {{ histogram_column }}">
+    {% else %}
+        <p>No numeric data available for histogram.</p>
+    {% endif %}
+
+    <p><a href="{% url 'preprocessing:data-list' %}">Back to List</a></p>
+{% endblock %}
