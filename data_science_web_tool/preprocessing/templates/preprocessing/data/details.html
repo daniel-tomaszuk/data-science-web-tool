@@ -1,74 +1,116 @@
 {% extends "common/base.html" %}
 
 {% block content %}
-    <h2>Data Details</h2>
-    <div style="display: flex; gap: 15px;">
+<div class="container mt-4">
+    <h2 class="mb-3">Data Details</h2>
+
+    <!-- Data Info Section -->
+    <div class="d-flex gap-2 align-items-center mb-4">
         <span><strong>Name:</strong> {{ object.name }}</span>
         <span><strong>Created At:</strong> {{ object.created_at|date:"Y-m-d H:i" }}</span>
         <span><strong>Updated At:</strong> {{ object.updated_at|date:"Y-m-d H:i" }}</span>
     </div>
-    <div style="display: flex; gap: 20px; flex-wrap: wrap;">
-        <div>
-            <h4>DataFrame.info()</h4>
-            <pre>{{ statistics.info|safe }}</pre>
-        </div>
 
-        <div>
-            <h4>DataFrame.describe().T</h4>
-            {{ statistics.describe|safe }}
+    <!-- Statistics Sections -->
+    <div class="row g-4">
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-header"><strong>DataFrame.info()</strong></div>
+                <div class="card-body">
+                    <pre class="bg-light p-3 rounded w-100">{{ statistics.info|safe }}</pre>
+                </div>
+            </div>
         </div>
-        <div>
-            <h4>DataFrame.head(10)</h4>
-            {{ statistics.head|safe }}
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-header"><strong>DataFrame.describe().T</strong></div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        {{ statistics.describe|safe }}
+                    </div>
+                </div>
+            </div>
         </div>
-        <div class="update-data-type-form">
-            <form method="POST" action="{% url 'preprocessing:change-column-type' object.id %}">
-                {% csrf_token %}
-                <h4>Update Column Data Types</h4>
-                <table border="1">
-                    <thead>
-                        <tr>
-                            <th>Column Name</th>
-                            <th>Current Type</th>
-                            <th>New Type</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for col_name, col_type in object.data_columns.items %}
-                            <tr>
-                                <td>{{ col_name }}</td>
-                                <td>{{ col_type|title }}</td>
-                                <td>
-                                    <select name="data_type_{{ col_name }}">
-                                        {% for data_type in object.SUPPORTED_COLUMN_TYPES %}
-                                            <option value="{{ data_type }}" {% if col_type == data_type %}selected{% endif %}>
-                                                {{ data_type|title }}
-                                            </option>
-                                        {% endfor %}
-                                    </select>
-                                </td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-                <button type="submit">Save</button>
-            </form>
-            {% if messages %}
-                <ul class="messages">
-                    {% for message in messages %}
-                        <li class="{{ message.tags }}">{{ message }}</li>
-                    {% endfor %}
-                </ul>
-            {% endif %}
+    </div>
+    <div class="row g-4 align-items-stretch">
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-header"><strong>DataFrame.head(10)</strong></div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        {{ statistics.head|safe }}
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-header">Update Column Data Types</div>
+                <div class="card-body">
+                    <form method="POST" action="{% url 'preprocessing:change-column-type' object.id %}">
+                        {% csrf_token %}
+                        <div class="table-responsive">
+                            <table class="table table-bordered">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Column Name</th>
+                                        <th>Current Type</th>
+                                        <th>New Type</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for col_name, col_type in object.data_columns.items %}
+                                        <tr>
+                                            <td>{{ col_name }}</td>
+                                            <td>{{ col_type|title }}</td>
+                                            <td>
+                                                <select class="form-select" name="data_type_{{ col_name }}">
+                                                    {% for data_type in object.SUPPORTED_COLUMN_TYPES %}
+                                                        <option value="{{ data_type }}" {% if col_type == data_type %}selected{% endif %}>
+                                                            {{ data_type|title }}
+                                                        </option>
+                                                    {% endfor %}
+                                                </select>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        <!-- Messages -->
+                        <div class="d-flex align-items-center gap-3 mt-3">
+                            <button type="submit" class="btn btn-primary">Save</button>
+
+                            {% if messages %}
+                                <div class="d-flex flex-column">
+                                    {% for message in messages %}
+                                        <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show mb-0" role="alert">
+                                            {{ message|capfirst }}
+                                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </form>
+                </div>
+            </div>
         </div>
     </div>
 
+    <!-- Histogram -->
     {% if histogram %}
-        <h4>Histogram of {{ histogram_column }}</h4>
-        <img src="{{ histogram }}" alt="Histogram Plot of {{ histogram_column }}">
+        <div class="mt-4">
+            <h4>Histogram of {{ histogram_column }}</h4>
+            <img src="{{ histogram }}" alt="Histogram Plot of {{ histogram_column }}" class="img-fluid rounded">
+        </div>
     {% else %}
-        <p>No numeric data available for histogram.</p>
+        <p class="text-muted mt-3">No numeric data available for histogram.</p>
     {% endif %}
 
-    <p><a href="{% url 'general:data-list' %}">Back to List</a></p>
+    <!-- Back Button -->
+    <div class="mt-4">
+        <a href="{% url 'general:data-list' %}" class="btn btn-secondary">Back to List</a>
+    </div>
+</div>
 {% endblock %}

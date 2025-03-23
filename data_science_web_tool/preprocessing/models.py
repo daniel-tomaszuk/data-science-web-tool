@@ -56,23 +56,19 @@ class Data(models.Model):
         return format_html('<a href="{}">{}</a>', url, self.name)
 
     def get_statistics(self):
-        s = time.perf_counter()
-        print("START", s)
         df: pd.DataFrame = pd.DataFrame(self.data)
         if df.empty:
             return {}
-        e = time.perf_counter()
-        print("END", e)
-        print("load time", e - s)
 
         # Capture info() output as a string
         buffer = io.StringIO()
         df.info(buf=buffer)
         info_text = buffer.getvalue().replace("\n", "<br>")
-
         return {
-            "describe": df.describe().T.to_html(),
-            "head": df.head(10).to_html(),
+            "describe": df.describe().T.to_html(
+                classes="table table-bordered table-sm"
+            ),
+            "head": df.head(10).to_html(classes="table table-bordered table-sm"),
             "info": info_text,
         }
 
