@@ -5,6 +5,7 @@
 *.idea
 *.idea/
 ./uploads/*
+/data_science_web_tool/uploads/
 
 ### Django ###
 *.log
