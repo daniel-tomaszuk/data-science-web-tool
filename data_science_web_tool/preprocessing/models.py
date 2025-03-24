@@ -56,7 +56,7 @@ class Data(models.Model):
         return format_html('<a href="{}">{}</a>', url, self.name)
 
     def get_statistics(self):
-        df: pd.DataFrame = pd.DataFrame(self.data)
+        df: pd.DataFrame = self.get_df()
         if df.empty:
             return {}
 
@@ -66,7 +66,7 @@ class Data(models.Model):
         info_text = buffer.getvalue().replace("\n", "<br>")
         return {
             "describe": df.describe().T.to_html(
-                classes="table table-bordered table-sm"
+                classes="table table-bordered table-sm",
             ),
             "head": df.head(10).to_html(classes="table table-bordered table-sm"),
             "info": info_text,

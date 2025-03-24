@@ -78,18 +78,15 @@
                             </table>
                         </div>
                         <!-- Messages -->
-                        <div class="d-flex align-items-center gap-3 mt-3">
+                        <div class="align-items-center gap-3 mt-3">
                             <button type="submit" class="btn btn-primary">Save</button>
-
                             {% if messages %}
-                                <div class="d-flex flex-column">
-                                    {% for message in messages %}
-                                        <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show mb-0" role="alert">
-                                            {{ message|capfirst }}
-                                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                                        </div>
-                                    {% endfor %}
-                                </div>
+                                {% for message in messages %}
+                                    <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show mb-0" role="alert">
+                                        {{ message|capfirst }}
+                                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                    </div>
+                                {% endfor %}
                             {% endif %}
                         </div>
                     </form>

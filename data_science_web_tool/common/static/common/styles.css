@@ -1,0 +1,12 @@
+.table-responsive {
+    overflow-x: auto;
+    position: relative;
+}
+
+.table thead th:first-child,
+.table tbody td:first-child {
+    position: sticky;
+    left: 0;
+    background-color: white;
+    z-index: 2;
+}
