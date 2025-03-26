@@ -10,3 +10,9 @@
     background-color: white;
     z-index: 2;
 }
+
+/* Fixed size for cards so it's possible to scroll up and down */
+.card-body {
+    max-height: 800px;  /* Adjust height as needed */
+    overflow-y: auto;   /* Enables vertical scrolling */
+}

@@ -20,6 +20,7 @@ class Data(models.Model):
         "datetime64[ns]",
         "categorical",
     )
+    SUPPORTED_PLOT_TYPES = "sns.lineplot"
 
     class Meta:
         verbose_name_plural = "data"

@@ -94,15 +94,53 @@
             </div>
         </div>
     </div>
+    <br>
+    <h3>Plot Data</h3>
+    <!-- Plot Selection Form -->
+    <div class="card mb-4">
+        <div class="card-header"><strong>Select Plot Type & Column</strong></div>
+        <div class="card-body">
+            <form method="POST" action="{% url 'preprocessing:get-column-plot' object.id %}">
+                {% csrf_token %}
+                <div class="row g-3 align-items-end">
+                    <!-- Select Plot Type -->
+                    <div class="col-md-6">
+                        <label for="plotType" class="form-label">Plot Type</label>
+                        <select class="form-select" id="plotType" name="plot_type" required>
+                            <option value="histogram">Histogram</option>
+                            <option value="boxplot">Box Plot</option>
+                            <option value="line_plot">Line Plot</option>
+                            <option value="scatter">Scatter Plot</option>
+                        </select>
+                    </div>
 
-    <!-- Histogram -->
-    {% if histogram %}
+                    <!-- Select Column -->
+                    <div class="col-md-6">
+                        <label for="plotColumn" class="form-label">Column</label>
+                        <select class="form-select" id="plotColumn" name="column_name" required>
+                            {% for column_name in object.data_columns.keys%}
+                                <option value="{{ column_name }}">{{ column_name|title }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-primary w-100">Generate Plot</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Display Generated Plot -->
+    {% if preprocessing_plot_image %}
         <div class="mt-4">
-            <h4>Histogram of {{ histogram_column }}</h4>
-            <img src="{{ histogram }}" alt="Histogram Plot of {{ histogram_column }}" class="img-fluid rounded">
+            <h4>{{ preprocessing_plot_type }} of {{ preprocessing_plot_image_column }}</h4>
+            <img src="{{ preprocessing_plot_image  }}" alt="Plot of {{ preprocessing_plot_image }}" class="img-fluid rounded">
         </div>
     {% else %}
-        <p class="text-muted mt-3">No numeric data available for histogram.</p>
+        <p class="text-muted mt-3">No image available.</p>
     {% endif %}
 
     <!-- Back Button -->

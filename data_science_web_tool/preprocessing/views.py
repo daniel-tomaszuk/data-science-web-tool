@@ -3,7 +3,11 @@ from django.shortcuts import get_object_or_404
 from django.shortcuts import redirect
 from django.views.generic import DetailView
 from preprocessing.models import Data
+from preprocessing.serializers.preprocessing import ImageRetrieveSerializer
+from rest_framework import status
 from rest_framework.generics import CreateAPIView
+from rest_framework.generics import RetrieveAPIView
+from rest_framework.response import Response
 
 
 class DataDetailView(DetailView):
@@ -13,15 +17,19 @@ class DataDetailView(DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["statistics"] = self.object.get_statistics()
-
-        image, selected_column = self.object.get_histogram("Adj Close")
-        context["histogram"] = image
-        context["histogram_column"] = selected_column
-
+        context["preprocessing_plot_image"] = self.request.session.pop(
+            "preprocessing_plot_image", None
+        )
+        context["preprocessing_plot_image_column"] = self.request.session.pop(
+            "preprocessing_plot_image_column", None
+        )
+        context["preprocessing_plot_type"] = self.request.session.pop(
+            "preprocessing_plot_type", None
+        )
         return context
 
 
-class DetailChangeColumnType(CreateAPIView):
+class ChangeColumnTypeCreateAPIView(CreateAPIView):
     queryset = Data.objects.all()
     serializer_class = None
 
@@ -60,4 +68,24 @@ class DetailChangeColumnType(CreateAPIView):
         if is_success:
             messages.success(request, "Column types updated successfully!")
 
+        return redirect("preprocessing:data-detail", pk=instance.id)
+
+
+class ImageRetrieveAPIView(CreateAPIView):
+    queryset = Data.objects.all()
+    serializer_class = ImageRetrieveSerializer
+
+    def create(self, request, *args, **kwargs):
+        """
+        Generate requested plot and return it as an image.
+        """
+        instance: Data = get_object_or_404(Data, id=self.kwargs.get("pk", ""))
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        validated_data = serializer.validated_data
+
+        image, selected_column = instance.get_histogram(validated_data["column_name"])
+        request.session["preprocessing_plot_image"] = image
+        request.session["preprocessing_plot_image_column"] = selected_column
+        request.session["preprocessing_plot_type"] = validated_data["plot_type"]
         return redirect("preprocessing:data-detail", pk=instance.id)
