@@ -74,9 +74,11 @@ class Data(models.Model):
         }
 
     def get_df(self) -> pd.DataFrame:
-        # TODO: apply selected indexes
         df = pd.DataFrame(self.data)
         df = df.astype(self.data_columns)
+        if self.data_index:
+            df.set_index(self.data_index, inplace=True)
+            df = df.sort_index()
         return df
 
     def __str__(self) -> str:

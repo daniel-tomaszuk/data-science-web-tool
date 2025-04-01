@@ -15,13 +15,9 @@ class LinePlotHandler:
     def create_image(self) -> str:
         df: pd.DataFrame = self.data.get_df()
 
-        # TODO: move me to the get_df
-        df.set_index("Date", inplace=True)
-        df = df.sort_index()
-
         plt.figure(figsize=(8, 5))
         sns.lineplot(data=df[self.column_name])
-        plt.xlabel("Date")
+        plt.xlabel("Date")  # TODO: FIX ME, user must be able to select it
         plt.ylabel(self.column_name)
         plt.title(f"Line plot of {self.column_name}")
         plt.grid(True)
