@@ -3,7 +3,10 @@
 {% block title %}List of uploaded data entries{% endblock %}
 
 {% block content %}
-<h1>Uploaded entries</h1>
+<div class="d-flex align-items-center">
+    <h1 class="mb-1 me-4">List of uploaded data entries</h1>
+    <a href="{% url 'admin:preprocessing_dataupload_changelist' %}" class="btn btn-primary btn-sm">Add</a>
+</div>
 <div class="table-responsive">
     <table class="table table-bordered">
         <thead>

@@ -12,8 +12,8 @@ urlpatterns = [
         name="change-column-type",
     ),
     path(
-        "<int:pk>/get-column-plot/",
+        "<int:pk>/create-plot/",
         views.ImageRetrieveAPIView.as_view(),
-        name="get-column-plot",
+        name="create-plot",
     ),
 ]

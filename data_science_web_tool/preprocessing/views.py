@@ -1,3 +1,5 @@
+from typing import Callable
+
 from django.contrib import messages
 from django.shortcuts import get_object_or_404
 from django.shortcuts import redirect
@@ -5,6 +7,7 @@ from django.views.generic import DetailView
 from preprocessing.models import Data
 from preprocessing.serializers.preprocessing import ImageRetrieveSerializer
 from rest_framework import status
+from rest_framework.exceptions import ValidationError
 from rest_framework.generics import CreateAPIView
 from rest_framework.generics import RetrieveAPIView
 from rest_framework.response import Response
@@ -84,8 +87,18 @@ class ImageRetrieveAPIView(CreateAPIView):
         serializer.is_valid(raise_exception=True)
         validated_data = serializer.validated_data
 
-        image, selected_column = instance.get_histogram(validated_data["column_name"])
+        plot_handler: Callable = instance.SUPPORTED_PLOT_TYPES.get(
+            validated_data["plot_type"]
+        )
+        if not plot_handler:
+            raise ValidationError("Invalid plot type.")
+
+        image: str = plot_handler(
+            data=instance, column_name=validated_data["column_name"]
+        ).create_image()
         request.session["preprocessing_plot_image"] = image
-        request.session["preprocessing_plot_image_column"] = selected_column
+        request.session["preprocessing_plot_image_column"] = validated_data[
+            "column_name"
+        ]
         request.session["preprocessing_plot_type"] = validated_data["plot_type"]
         return redirect("preprocessing:data-detail", pk=instance.id)

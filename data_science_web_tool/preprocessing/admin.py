@@ -83,9 +83,3 @@ class DataAdmin(admin.ModelAdmin):
             )
             return preview_str
         return "No Data"
-
-
-class DataStatisticsAdmin(admin.ModelAdmin):
-    """
-    ModelAdmin page for DataStatistics.
-    """
