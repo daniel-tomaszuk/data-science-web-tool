@@ -96,15 +96,6 @@
     </div>
     <br>
     {% include "preprocessing/components/create_image.html" with object=object %}
-    <!-- Display Generated Plot -->
-    {% if preprocessing_plot_image %}
-        <div class="mt-4">
-            <h4>{{ preprocessing_plot_type }} of {{ preprocessing_plot_image_column }}</h4>
-            <img src="{{ preprocessing_plot_image  }}" alt="Plot of {{ preprocessing_plot_image }}" class="img-fluid rounded">
-        </div>
-    {% else %}
-        <p class="text-muted mt-3">No image available.</p>
-    {% endif %}
 
     <!-- Back Button -->
     <div class="mt-4">

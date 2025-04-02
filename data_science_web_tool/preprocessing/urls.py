@@ -13,7 +13,7 @@ urlpatterns = [
     ),
     path(
         "<int:pk>/create-plot/",
-        views.ImageRetrieveAPIView.as_view(),
+        views.ImageCreateAPIView.as_view(),
         name="create-plot",
     ),
 ]

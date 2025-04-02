@@ -23,8 +23,11 @@ class DataDetailView(DetailView):
         context["preprocessing_plot_image"] = self.request.session.pop(
             "preprocessing_plot_image", None
         )
-        context["preprocessing_plot_image_column"] = self.request.session.pop(
-            "preprocessing_plot_image_column", None
+        context["preprocessing_plot_axis_x_name"] = self.request.session.pop(
+            "preprocessing_plot_axis_x_name", None
+        )
+        context["preprocessing_plot_axis_y_name"] = self.request.session.pop(
+            "preprocessing_plot_axis_y_name", None
         )
         context["preprocessing_plot_type"] = self.request.session.pop(
             "preprocessing_plot_type", None
@@ -74,7 +77,7 @@ class ChangeColumnTypeCreateAPIView(CreateAPIView):
         return redirect("preprocessing:data-detail", pk=instance.id)
 
 
-class ImageRetrieveAPIView(CreateAPIView):
+class ImageCreateAPIView(CreateAPIView):
     queryset = Data.objects.all()
     serializer_class = ImageRetrieveSerializer
 
@@ -94,11 +97,16 @@ class ImageRetrieveAPIView(CreateAPIView):
             raise ValidationError("Invalid plot type.")
 
         image: str = plot_handler(
-            data=instance, column_name=validated_data["column_name"]
+            data=instance,
+            axis_x_name=validated_data["axis_x_name"],
+            axis_y_name=validated_data["axis_y_name"],
         ).create_image()
         request.session["preprocessing_plot_image"] = image
-        request.session["preprocessing_plot_image_column"] = validated_data[
-            "column_name"
-        ]
+        request.session["preprocessing_plot_axis_x_name"] = validated_data[
+            "axis_x_name"
+        ].lower()
+        request.session["preprocessing_plot_axis_y_name"] = validated_data[
+            "axis_y_name"
+        ].lower()
         request.session["preprocessing_plot_type"] = validated_data["plot_type"]
         return redirect("preprocessing:data-detail", pk=instance.id)

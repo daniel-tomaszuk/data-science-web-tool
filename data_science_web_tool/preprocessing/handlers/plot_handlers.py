@@ -8,18 +8,24 @@ import seaborn as sns
 
 class LinePlotHandler:
 
-    def __init__(self, data: "models.Data", column_name: str):
+    def __init__(
+        self,
+        data: "models.Data",
+        axis_x_name: str,
+        axis_y_name: str,
+    ):
         self.data = data
-        self.column_name = column_name
+        self.axis_x_name = axis_x_name
+        self.axis_y_name = axis_y_name
 
     def create_image(self) -> str:
         df: pd.DataFrame = self.data.get_df()
 
         plt.figure(figsize=(8, 5))
-        sns.lineplot(data=df[self.column_name])
-        plt.xlabel("Date")  # TODO: FIX ME, user must be able to select it
-        plt.ylabel(self.column_name)
-        plt.title(f"Line plot of {self.column_name}")
+        sns.lineplot(x=df[self.axis_x_name], y=df[self.axis_y_name])
+        plt.xlabel(self.axis_x_name)
+        plt.ylabel(self.axis_y_name)
+        plt.title(f"Line plot of {self.axis_x_name} vs. {self.axis_y_name}")
         plt.grid(True)
 
         # Save the plot as a base64 string

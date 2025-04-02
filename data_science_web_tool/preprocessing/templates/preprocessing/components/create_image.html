@@ -5,8 +5,9 @@
         <form method="POST" action="{% url 'preprocessing:create-plot' object.id %}">
             {% csrf_token %}
             <div class="row g-3 align-items-end">
+
                 <!-- Select Plot Type -->
-                <div class="col-md-6">
+                <div class="col-md-4">
                     <label for="plotType" class="form-label">Plot Type</label>
                     <select class="form-select" id="plotType" name="plot_type" required>
                         {% for supported_plot_type in object.SUPPORTED_PLOT_TYPES %}
@@ -17,12 +18,26 @@
                     </select>
                 </div>
 
-                <!-- Select Column -->
-                <div class="col-md-6">
-                    <label for="plotColumn" class="form-label">Column</label>
-                    <select class="form-select" id="plotColumn" name="column_name" required>
+                <!-- Select Column X-->
+                <div class="col-md-4">
+                    <label for="plotColumn" class="form-label">Axis X</label>
+                    <select class="form-select" id="plotColumnX" name="axis_x_name" required>
                         {% for column_name in object.data_columns.keys%}
-                            <option value="{{ column_name }}">{{ column_name|title }}</option>
+                            <option value="{{ column_name }}" {% if column_name|lower == preprocessing_plot_axis_x_name %}selected{% endif %}>
+                                {{ column_name|title }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Select Column Y-->
+                <div class="col-md-4">
+                    <label for="plotColumn" class="form-label">Axis Y</label>
+                    <select class="form-select" id="plotColumnY" name="axis_y_name" required>
+                        {% for column_name in object.data_columns.keys%}
+                            <option value="{{ column_name }}" {% if column_name|lower == preprocessing_plot_axis_y_name %}selected{% endif %}>
+                                {{ column_name|title }}
+                            </option>
                         {% endfor %}
                     </select>
                 </div>
@@ -34,4 +49,12 @@
             </div>
         </form>
     </div>
+    <!-- Display Generated Plot -->
+    {% if preprocessing_plot_image %}
+        <div class="mt-4">
+            <img src="{{ preprocessing_plot_image  }}" alt="Plot of {{ preprocessing_plot_image }}" class="img-fluid rounded">
+        </div>
+    {% else %}
+        <p class="text-muted mt-3">No image available.</p>
+    {% endif %}
 </div>
