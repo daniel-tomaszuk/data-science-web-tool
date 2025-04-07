@@ -6,11 +6,8 @@ from django.shortcuts import redirect
 from django.views.generic import DetailView
 from preprocessing.models import Data
 from preprocessing.serializers.preprocessing import ImageRetrieveSerializer
-from rest_framework import status
 from rest_framework.exceptions import ValidationError
 from rest_framework.generics import CreateAPIView
-from rest_framework.generics import RetrieveAPIView
-from rest_framework.response import Response
 
 
 class DataDetailView(DetailView):
@@ -29,8 +26,14 @@ class DataDetailView(DetailView):
         context["preprocessing_plot_axis_y_name"] = self.request.session.pop(
             "preprocessing_plot_axis_y_name", None
         )
+        context["preprocessing_group_by_name"] = self.request.session.pop(
+            "preprocessing_group_by_name", None
+        )
         context["preprocessing_plot_type"] = self.request.session.pop(
             "preprocessing_plot_type", None
+        )
+        context["image_validation_errors"] = self.request.session.pop(
+            "image_validation_errors", None
         )
         return context
 
@@ -87,7 +90,10 @@ class ImageCreateAPIView(CreateAPIView):
         """
         instance: Data = get_object_or_404(Data, id=self.kwargs.get("pk", ""))
         serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
+        if not serializer.is_valid(raise_exception=False):
+            request.session["image_validation_errors"] = serializer.errors
+            return redirect("preprocessing:data-detail", pk=instance.id)
+
         validated_data = serializer.validated_data
 
         plot_handler: Callable = instance.SUPPORTED_PLOT_TYPES.get(
@@ -100,6 +106,7 @@ class ImageCreateAPIView(CreateAPIView):
             data=instance,
             axis_x_name=validated_data["axis_x_name"],
             axis_y_name=validated_data["axis_y_name"],
+            group_by_name=validated_data["group_by_name"],
         ).create_image()
         request.session["preprocessing_plot_image"] = image
         request.session["preprocessing_plot_axis_x_name"] = validated_data[
@@ -109,4 +116,5 @@ class ImageCreateAPIView(CreateAPIView):
             "axis_y_name"
         ].lower()
         request.session["preprocessing_plot_type"] = validated_data["plot_type"]
+        request.session["preprocessing_group_by_name"] = validated_data["group_by_name"]
         return redirect("preprocessing:data-detail", pk=instance.id)

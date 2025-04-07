@@ -5,7 +5,8 @@ from django.db import models
 from django.urls import reverse
 from django.utils.html import format_html
 from preprocessing.data_sources_handlers.csv_source_handler import CsvDataSourceHandler
-from preprocessing.handlers.plot_handlers import LinePlotHandler
+from preprocessing.plot_handlers.histogram import HistogramPlotHandler
+from preprocessing.plot_handlers.line_plot import LinePlotHandler
 
 
 class Data(models.Model):
@@ -15,11 +16,11 @@ class Data(models.Model):
         "object",
         "bool",
         "datetime64[ns]",
-        "categorical",
-        "index",
+        "category",
     )
     SUPPORTED_PLOT_TYPES = {
         "sns.lineplot": LinePlotHandler,
+        "sns.histplot": HistogramPlotHandler,
     }
 
     class Meta:

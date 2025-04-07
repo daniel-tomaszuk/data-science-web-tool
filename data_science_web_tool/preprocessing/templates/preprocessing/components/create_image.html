@@ -7,7 +7,7 @@
             <div class="row g-3 align-items-end">
 
                 <!-- Select Plot Type -->
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <label for="plotType" class="form-label">Plot Type</label>
                     <select class="form-select" id="plotType" name="plot_type" required>
                         {% for supported_plot_type in object.SUPPORTED_PLOT_TYPES %}
@@ -18,10 +18,11 @@
                     </select>
                 </div>
 
-                <!-- Select Column X-->
-                <div class="col-md-4">
+                <!-- Select Column X -->
+                <div class="col-md-3">
                     <label for="plotColumn" class="form-label">Axis X</label>
                     <select class="form-select" id="plotColumnX" name="axis_x_name" required>
+                        <option value="-">-</option>
                         {% for column_name in object.data_columns.keys%}
                             <option value="{{ column_name }}" {% if column_name|lower == preprocessing_plot_axis_x_name %}selected{% endif %}>
                                 {{ column_name|title }}
@@ -30,14 +31,30 @@
                     </select>
                 </div>
 
-                <!-- Select Column Y-->
-                <div class="col-md-4">
+                <!-- Select Column Y -->
+                <div class="col-md-3">
                     <label for="plotColumn" class="form-label">Axis Y</label>
                     <select class="form-select" id="plotColumnY" name="axis_y_name" required>
+                        <option value="-">-</option>
                         {% for column_name in object.data_columns.keys%}
                             <option value="{{ column_name }}" {% if column_name|lower == preprocessing_plot_axis_y_name %}selected{% endif %}>
                                 {{ column_name|title }}
                             </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Select Column Group By -->
+                <div class="col-md-3">
+                    <label for="plotColumn" class="form-label">Group By</label>
+                    <select class="form-select" id="plotGroupBy" name="group_by_name">
+                        <option value="-">-</option>
+                        {% for column_name, column_value in object.data_columns.items%}
+                            {% if column_value == 'category' %}
+                                <option value="{{ column_name }}" {% if column_name|lower == preprocessing_plot_group_by_name %}selected{% endif %}>
+                                    {{ column_name|title }}
+                                </option>
+                            {% endif %}
                         {% endfor %}
                     </select>
                 </div>
@@ -49,6 +66,17 @@
             </div>
         </form>
     </div>
+
+    <!-- Image validation errors -->
+    {% if image_validation_errors %}
+        <div class="alert alert-danger alert-dismissible fade show mb-0" role="alert">
+            {% for error_msg in image_validation_errors.non_field_errors %}
+                {{ error_msg|capfirst }}
+            {% endfor %}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    {% endif %}
+
     <!-- Display Generated Plot -->
     {% if preprocessing_plot_image %}
         <div class="mt-4">
