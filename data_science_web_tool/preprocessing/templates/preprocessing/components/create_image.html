@@ -51,7 +51,7 @@
                         <option value="-">-</option>
                         {% for column_name, column_value in object.data_columns.items%}
                             {% if column_value == 'category' %}
-                                <option value="{{ column_name }}" {% if column_name|lower == preprocessing_plot_group_by_name %}selected{% endif %}>
+                                <option value="{{ column_name }}" {% if column_name == preprocessing_group_by_name %}selected{% endif %}>
                                     {{ column_name|title }}
                                 </option>
                             {% endif %}
@@ -80,9 +80,19 @@
     <!-- Display Generated Plot -->
     {% if preprocessing_plot_image %}
         <div class="mt-4">
-            <img src="{{ preprocessing_plot_image  }}" alt="Plot of {{ preprocessing_plot_image }}" class="img-fluid rounded">
+            <img id="plotResult" src="{{ preprocessing_plot_image  }}" alt="Plot of {{ preprocessing_plot_image }}" class="img-fluid rounded">
         </div>
     {% else %}
         <p class="text-muted mt-3">No image available.</p>
     {% endif %}
 </div>
+
+
+<script>
+  window.onload = function () {
+    const imagePlot = document.getElementById("plotResult");
+    if (imagePlot) {
+      imagePlot.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+</script>

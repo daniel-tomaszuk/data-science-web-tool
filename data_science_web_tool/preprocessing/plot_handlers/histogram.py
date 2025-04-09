@@ -2,36 +2,30 @@ import base64
 import io
 
 import matplotlib.pyplot as plt
-import pandas as pd
 import seaborn as sns
+from preprocessing.plot_handlers.base import BasePlotHandler
 
 
-class HistogramPlotHandler:
-
-    def __init__(
-        self,
-        data: "models.Data",
-        axis_x_name: str,
-        axis_y_name: str,
-    ):
-        self.data = data
-        self.axis_x_name = axis_x_name
-        self.axis_y_name = axis_y_name
-
+class HistogramPlotHandler(BasePlotHandler):
     def create_image(self) -> str:
-        df: pd.DataFrame = self.data.get_df()
+        plot_kwargs = self.get_plot_kwargs()
+        if not plot_kwargs:
+            return ""
 
-        plt.figure(figsize=(8, 5))
+        plt.figure(figsize=self.DEFAULT_FIGSIZE)
         sns.histplot(
-            data=df[self.axis_x_name],
             kde=True,
-            #
-            # x=df[self.axis_x_name],
-            # y=df[self.axis_y_name],
+            **plot_kwargs,
         )
         plt.xlabel(self.axis_x_name)
-        # plt.ylabel(self.axis_y_name)
-        plt.title(f"Histogram of {self.axis_x_name} vs. {self.axis_y_name}")
+        plt.ylabel("Count")
+
+        title = f"Histogram of {self.axis_x_name}"
+        if self.axis_y_name:
+            title += f" .vs {self.axis_y_name}"
+            plt.ylabel(self.axis_y_name)
+
+        plt.title(title)
         plt.grid(True)
 
         # Save the plot as a base64 string
