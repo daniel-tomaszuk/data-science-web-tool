@@ -4,10 +4,11 @@ from django.contrib import messages
 from django.shortcuts import get_object_or_404
 from django.shortcuts import redirect
 from django.views.generic import DetailView
-from preprocessing.models import Data
-from preprocessing.serializers.preprocessing import ImageRetrieveSerializer
 from rest_framework.exceptions import ValidationError
 from rest_framework.generics import CreateAPIView
+
+from preprocessing.models import Data
+from preprocessing.serializers.preprocessing import ImageRetrieveSerializer
 
 
 class DataDetailView(DetailView):
@@ -34,6 +35,12 @@ class DataDetailView(DetailView):
         )
         context["image_validation_errors"] = self.request.session.pop(
             "image_validation_errors", None
+        )
+        context["is_group_by_disabled"] = not bool(
+            any(
+                value_type == "category"
+                for value_type in self.object.data_columns.values()
+            )
         )
         return context
 

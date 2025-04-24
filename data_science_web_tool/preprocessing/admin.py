@@ -4,6 +4,7 @@ import json
 from django import forms
 from django.contrib import admin
 from django.core.files.uploadedfile import TemporaryUploadedFile
+
 from preprocessing.models import Data
 from preprocessing.models import DataUpload
 
@@ -22,7 +23,9 @@ class FileUploadForm(forms.ModelForm):
         file: TemporaryUploadedFile = self.cleaned_data["file"]
         if not any(
             file.name.endswith(f".{supported_extension}")
-            for supported_extension in list(DataUpload.FILE_TYPE_PROCESSORS.keys())
+            for supported_extension in list(
+                DataUpload.DATA_SOURCE_TYPE_PROCESSORS.keys()
+            )
         ):
             raise forms.ValidationError("Uploaded file type is not supported.")
         return file

@@ -46,19 +46,26 @@
 
                 <!-- Select Column Group By -->
                 <div class="col-md-3">
-                    <label for="plotColumn" class="form-label">Group By</label>
-                    <select class="form-select" id="plotGroupBy" name="group_by_name">
-                        <option value="-">-</option>
-                        {% for column_name, column_value in object.data_columns.items%}
-                            {% if column_value == 'category' %}
-                                <option value="{{ column_name }}" {% if column_name == preprocessing_group_by_name %}selected{% endif %}>
-                                    {{ column_name|title }}
-                                </option>
-                            {% endif %}
-                        {% endfor %}
-                    </select>
+                    <label for="plotGroupBy" class="form-label">Group By</label>
+                    {% if is_group_by_disabled %}
+                        <span data-bs-toggle="tooltip" title="No Categories to Group By.">
+                            <select class="form-select" id="plotGroupBy" name="group_by_name" disabled>
+                                <option value="-">-</option>
+                            </select>
+                        </span>
+                    {% else %}
+                        <select class="form-select" id="plotGroupBy" name="group_by_name">
+                            <option value="-">-</option>
+                            {% for column_name, column_value in object.data_columns.items %}
+                                {% if column_value == 'category' %}
+                                    <option value="{{ column_name }}" {% if column_name == preprocessing_group_by_name %}selected{% endif %}>
+                                        {{ column_name|title }}
+                                    </option>
+                                {% endif %}
+                            {% endfor %}
+                        </select>
+                    {% endif %}
                 </div>
-
                 <!-- Submit Button -->
                 <div class="col-12">
                     <button type="submit" class="btn btn-primary w-100">Generate Plot</button>

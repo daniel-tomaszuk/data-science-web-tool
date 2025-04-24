@@ -1,0 +1,46 @@
+{% extends "common/base.html" %}
+{% block title %}List of available yFinance tickers{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <h1 class="text-center mb-4">yFinance Available Stocks</h1>
+    <div class="table-responsive">
+        <table class="table table-bordered table-hover align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th scope="col">Ticker</th>
+                    <th scope="col">Name</th>
+                    <th scope="col">Sector</th>
+                    <th scope="col">Market Cap</th>
+                    <th scope="col">Download</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for ticker in yfinance %}
+                    <tr>
+                        <td>{{ ticker.symbol }}</td>
+                        <td>{{ ticker.shortName }}</td>
+                        <td>{{ ticker.sector }}</td>
+                        <td>
+                            {% if ticker.marketCap %}
+                                {{ ticker.marketCap }}
+                            {% else %}
+                                N/A
+                            {% endif %}
+                        </td>
+                        <td>
+                            <form action="{% url 'integrations:yahoo-finance-download' ticker.symbol %}" method="post">
+                                {% csrf_token %}
+                                <button class="btn btn-success btn-sm" type="submit">
+                                    <i class="bi bi-download"></i> Download
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    </div>
+
+{%  endblock %}

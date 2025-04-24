@@ -4,7 +4,9 @@ import pandas as pd
 from django.db import models
 from django.urls import reverse
 from django.utils.html import format_html
+
 from preprocessing.data_sources_handlers.csv_source_handler import CsvDataSourceHandler
+from preprocessing.data_sources_handlers.yfinance_source_handler import YFinanceDataSourceHandler
 from preprocessing.plot_handlers.histogram import HistogramPlotHandler
 from preprocessing.plot_handlers.line_plot import LinePlotHandler
 
@@ -47,10 +49,11 @@ class Data(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def save(self, *args, **kwargs):
-        df: pd.DataFrame = self.get_df()
-        self.data_columns = {
-            str(key): str(value) for key, value in df.dtypes.to_dict().items()
-        }
+        if not self.data_columns:
+            df: pd.DataFrame = self.get_df()
+            self.data_columns = {
+                str(key): str(value) for key, value in df.dtypes.to_dict().items()
+            }
         super().save(*args, **kwargs)
 
     def get_admin_change_url(self) -> str:
@@ -88,14 +91,18 @@ class Data(models.Model):
 
 class DataUpload(models.Model):
     FILE_TYPE_CSV = "csv"
-    FILE_TYPE_CHOICES = ((FILE_TYPE_CSV, FILE_TYPE_CSV),)
-
-    FILE_TYPE_PROCESSORS = {
+    YFINANACE = "yfinance"
+    DATA_SOURCE_CHOICES = (
+        (FILE_TYPE_CSV, FILE_TYPE_CSV),
+        (YFINANACE, YFINANACE),
+    )
+    DATA_SOURCE_TYPE_PROCESSORS = {
         "csv": CsvDataSourceHandler,
+        "yfinance": YFinanceDataSourceHandler,
     }
 
     file_name = models.CharField(max_length=512)
-    file_type = models.CharField(max_length=32, choices=FILE_TYPE_CHOICES)
+    file_type = models.CharField(max_length=32, choices=DATA_SOURCE_CHOICES)
     description = models.TextField(null=True, blank=True)
 
     file = models.FileField(upload_to="uploads/")
@@ -111,9 +118,11 @@ class DataUpload(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def save(self, *args, **kwargs):
-        self.file_name = self.file.name
+        if self.file and not self.file_name:
+            self.file_name = self.file.name
+
         if self.file and self.data is None:
-            file_handler = self.FILE_TYPE_PROCESSORS.get(self.file_type)
+            file_handler = self.DATA_SOURCE_TYPE_PROCESSORS.get(self.file_type)
             if not file_handler:
                 raise TypeError(f"File type '{self.file_type}' is not supported")
 
