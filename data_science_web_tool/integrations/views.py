@@ -52,7 +52,7 @@ class YahooFinanceUploadCreateView(CreateAPIView):
 
     def perform_create(self, serializer: YFinanceDataFormDownloadSerializer):
         validated_data: dict = serializer.validated_data
-        ticker = validated_data.get("symbol")
+        ticker = validated_data.get("ticker")
         custom_ticker = validated_data.get("custom_ticker")
         ticker = ticker or custom_ticker
         data_source_handler = DataUpload.DATA_SOURCE_TYPE_PROCESSORS["yfinance"]

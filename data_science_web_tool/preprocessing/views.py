@@ -113,7 +113,7 @@ class ImageCreateAPIView(CreateAPIView):
             data=instance,
             axis_x_name=validated_data["axis_x_name"],
             axis_y_name=validated_data["axis_y_name"],
-            group_by_name=validated_data["group_by_name"],
+            group_by_name=validated_data.get("group_by_name"),
         ).create_image()
         request.session["preprocessing_plot_image"] = image
         request.session["preprocessing_plot_axis_x_name"] = validated_data[
@@ -123,5 +123,7 @@ class ImageCreateAPIView(CreateAPIView):
             "axis_y_name"
         ].lower()
         request.session["preprocessing_plot_type"] = validated_data["plot_type"]
-        request.session["preprocessing_group_by_name"] = validated_data["group_by_name"]
+        request.session["preprocessing_group_by_name"] = validated_data.get(
+            "group_by_name", ""
+        )
         return redirect("preprocessing:data-detail", pk=instance.id)

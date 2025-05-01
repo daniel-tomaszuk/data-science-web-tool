@@ -6,7 +6,12 @@ from preprocessing.data_sources_handlers.base import DataSourceHandlerBase
 
 class YFinanceDataSourceHandler(DataSourceHandlerBase):
     SNIFFING_CHARS_COUNT = 2048
-    INTERVAL_CHOICES = ("1m", "5m", "15m", "1h", "1d", "1wk", "1mo")
+    INTERVAL_CHOICES = (
+        # "1m", "5m", "15m", "1h",  # Additional logic required, not supported for now.
+        "1d",
+        "1wk",
+        "1mo",
+    )
     PERIOD_CHOICES = ("1d", "5d", "1mo", "3mo", "6mo", "1y", "5y", "max")
 
     def load_data(self) -> list[dict]:

@@ -77,9 +77,9 @@
                                 </tbody>
                             </table>
                         </div>
-                        <!-- Messages -->
                         <div class="align-items-center gap-3 mt-3">
                             <button type="submit" class="btn btn-primary">Save</button>
+                            <!-- Messages -->
                             {% if messages %}
                                 {% for message in messages %}
                                     <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show mb-0" role="alert">
