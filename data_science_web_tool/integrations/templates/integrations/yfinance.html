@@ -4,6 +4,62 @@
 {% block content %}
 <div class="container my-5">
     <h1 class="text-center mb-4">yFinance Available Stocks</h1>
+
+    <!-- Global Form -->
+    <form action="{% url 'integrations:yahoo-finance-download' %}" method="post" class="mb-5">
+        {% csrf_token %}
+        <div class="row g-3 align-items-end">
+            <div class="col-md-3">
+                <label for="tickerSelect" class="form-label">Select Ticker</label>
+                <select class="form-select" name="ticker" id="tickerSelect">
+                    <option value="">-- Choose from list --</option>
+                    {% for ticker in yfinance %}
+                        <option value="{{ ticker.symbol }}">{{ ticker.symbol }} - {{ ticker.shortName }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="col-md-3">
+                <label for="customTicker" class="form-label">Or enter custom Ticker</label>
+                <input type="text" class="form-control" id="customTicker" name="custom_ticker" placeholder="e.g. AAPL">
+            </div>
+
+            <div class="col-md-2">
+                <label for="period" class="form-label">Time Range</label>
+                <select class="form-select" id="period" name="period">
+                    <option value="1d">1d</option>
+                    <option value="5d">5d</option>
+                    <option value="1mo">1mo</option>
+                    <option value="3mo">3mo</option>
+                    <option value="6mo">6mo</option>
+                    <option value="1y">1y</option>
+                    <option value="5y">5y</option>
+                    <option value="max" selected>max</option>
+                </select>
+            </div>
+
+            <div class="col-md-2">
+                <label for="interval" class="form-label">Interval</label>
+                <select class="form-select" id="interval" name="interval">
+                    <option value="1m">1m</option>
+                    <option value="5m">5m</option>
+                    <option value="15m">15m</option>
+                    <option value="1h">1h</option>
+                    <option value="1d" selected>1d</option>
+                    <option value="1wk">1wk</option>
+                    <option value="1mo">1mo</option>
+                </select>
+            </div>
+
+            <div class="col-md-2">
+                <button class="btn btn-primary w-100" type="submit">
+                    <i class="bi bi-cloud-arrow-down"></i> Download
+                </button>
+            </div>
+        </div>
+    </form>
+
+    <!-- Optional: still show the table for reference -->
     <div class="table-responsive">
         <table class="table table-bordered table-hover align-middle">
             <thead class="table-light">
@@ -12,7 +68,6 @@
                     <th scope="col">Name</th>
                     <th scope="col">Sector</th>
                     <th scope="col">Market Cap</th>
-                    <th scope="col">Download</th>
                 </tr>
             </thead>
             <tbody>
@@ -28,19 +83,10 @@
                                 N/A
                             {% endif %}
                         </td>
-                        <td>
-                            <form action="{% url 'integrations:yahoo-finance-download' ticker.symbol %}" method="post">
-                                {% csrf_token %}
-                                <button class="btn btn-success btn-sm" type="submit">
-                                    <i class="bi bi-download"></i> Download
-                                </button>
-                            </form>
-                        </td>
                     </tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
-    </div>
-
-{%  endblock %}
+</div>
+{% endblock %}

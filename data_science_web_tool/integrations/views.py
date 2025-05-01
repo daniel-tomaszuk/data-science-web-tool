@@ -5,6 +5,8 @@ from django.db import transaction
 from django.shortcuts import redirect
 from django.utils import timezone
 from django.views.generic import TemplateView
+from integrations.serializers.serializers import YFinanceDataFormDownloadSerializer
+from rest_framework import status
 from rest_framework.generics import CreateAPIView
 from rest_framework.response import Response
 
@@ -41,22 +43,30 @@ class YahooFinanceListView(TemplateView):
 
 class YahooFinanceUploadCreateView(CreateAPIView):
     model = DataUpload
-    serializer_class = None
+    serializer_class = YFinanceDataFormDownloadSerializer
+    created_data: Data = None
 
     def create(self, request, *args, **kwargs):
-        ticker = self.kwargs.get("symbol")
-        if not ticker:
-            # TODO: BAD REQUEST
-            return Response()
+        super().create(request, *args, **kwargs)
+        return redirect("preprocessing:data-detail", pk=self.created_data.id)
 
+    def perform_create(self, serializer: YFinanceDataFormDownloadSerializer):
+        validated_data: dict = serializer.validated_data
+        ticker = validated_data.get("symbol")
+        custom_ticker = validated_data.get("custom_ticker")
+        ticker = ticker or custom_ticker
         data_source_handler = DataUpload.DATA_SOURCE_TYPE_PROCESSORS["yfinance"]
-        data_source_handler = data_source_handler(ticker=self.kwargs.get("symbol"))
+        data_source_handler = data_source_handler(
+            ticker=ticker,
+            period=validated_data.get("period"),
+            interval=validated_data.get("interval"),
+        )
         data: list[dict] = data_source_handler.load_data()
         timestamp = timezone.now().strftime("%Y-%m-%d %H:%M:%S")
         name = f"yFinance {ticker} {timestamp}.json"
         description = f"Automatically fetched from yFinance at {timestamp}"
         with transaction.atomic():
-            data: Data = Data.objects.create(
+            self.created_data: Data = Data.objects.create(
                 data=data,
                 name=name,
                 description=description,
@@ -66,6 +76,5 @@ class YahooFinanceUploadCreateView(CreateAPIView):
                 file_type=DataUpload.YFINANACE,
                 description=description,
                 file=None,
-                data=data,
+                data=self.created_data,
             )
-        return redirect("preprocessing:data-detail", pk=data.id)
