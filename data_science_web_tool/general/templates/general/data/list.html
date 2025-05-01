@@ -12,23 +12,25 @@
     <table class="table table-bordered">
         <thead>
             <tr>
-                <th>Name</th>
-                <th>Details</th>
-                <th>Created At</th>
-                <th>Updated At</th>
-                <th>Admin Page</th>
-                <th>Preprocessing</th>
+                <th style="width: 15%">Name</th>
+                <th style="width: 39%">Details</th>
+                <th style="width: 8%">Created At</th>
+                <th style="width: 8%">Updated At</th>
+                <th style="width: 10%">Admin Page</th>
+                <th style="width: 10%">Preprocessing</th>
+                <th style="width: 10%">Linear Regression</th>
             </tr>
         </thead>
         <tbody>
             {% for obj in object_list %}
                 <tr>
                     <td>{{ obj.name }}</td>
-                    <td>{{ obj }}</td>
+                    <td>{{ obj  }}</td>
                     <td>{{ obj.created_at|date:"Y-m-d H:i" }}</td>
                     <td>{{ obj.updated_at|date:"Y-m-d H:i" }}</td>
                     <td>{{ obj.get_admin_change_url }}</td>
                     <td><a href="{% url 'preprocessing:data-detail' obj.pk %}">Preprocess</a></td>
+                    <td><a href="{% url 'preprocessing:data-detail' obj.pk %}">Linear Regression</a></td>
                 </tr>
             {% empty %}
                 <tr>
