@@ -30,7 +30,7 @@
                     <td>{{ obj.updated_at|date:"Y-m-d H:i" }}</td>
                     <td>{{ obj.get_admin_change_url }}</td>
                     <td><a href="{% url 'preprocessing:data-detail' obj.pk %}">Preprocess</a></td>
-                    <td><a href="{% url 'preprocessing:data-detail' obj.pk %}">Linear Regression</a></td>
+                    <td><a href="{% url 'linear_regression:linear-regression-details' obj.pk %}">Linear Regression</a></td>
                 </tr>
             {% empty %}
                 <tr>

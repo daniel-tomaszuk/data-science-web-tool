@@ -73,7 +73,7 @@ class Data(models.Model):
             "describe": df.describe().T.to_html(
                 classes="table table-bordered table-sm",
             ),
-            "head": df.head(10).to_html(classes="table table-bordered table-sm"),
+            "head": df.head(5).to_html(classes="table table-bordered table-sm"),
             "info": info_text,
         }
 

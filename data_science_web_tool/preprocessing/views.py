@@ -8,7 +8,7 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.generics import CreateAPIView
 
 from preprocessing.models import Data
-from preprocessing.serializers.preprocessing import ImageRetrieveSerializer
+from preprocessing.serializers.serializers import ImageRetrieveSerializer
 
 
 class DataDetailView(DetailView):

@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     "general",
     "preprocessing",
     "integrations",
+    "linear_regression",
 ]
 
 MIDDLEWARE = [

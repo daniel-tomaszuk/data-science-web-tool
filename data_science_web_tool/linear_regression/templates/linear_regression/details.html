@@ -1,0 +1,94 @@
+{% extends "common/base.html" %}
+{% block content %}
+
+<div class="container mt-4">
+    <h2 class="mb-3">Analyze Time Series Data</h2>
+    <div class="mb-3">{{ object }}</div>
+    <div class="row g-4">
+        <div class="col-md-4">
+            {% if form.errors or validation_errors %}
+                <div class="alert alert-danger">{{ form.errors }}</div>
+            {% endif %}
+            <form method="post" action="{% url 'linear_regression:linear-regression-time-series-create' %}">
+                {% csrf_token %}
+
+                <!-- Lag Size + Normalize -->
+                <div class="row mb-3 align-items-center">
+                    <!-- Lag Size -->
+                    <div class="col-6">
+                        <label for="lag" class="form-label">Lag Size</label>
+                        <input type="number" class="form-control" id="lag" name="lag" value="1" min="1" required>
+                    </div>
+                    <!-- Normalize -->
+                    <div class="col-6 d-flex align-items-center mt-3 mt-md-4">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="normalize" name="normalize">
+                            <label class="form-check-label" for="normalize">Normalize data</label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Target Column -->
+                <div class="mb-3">
+                    <label for="column" class="form-label">Target Column</label>
+                    <select class="form-select" id="targetColumn" name="target_column" required>
+                        {% for col in regression_columns_options %}
+                            <option value="{{ col }}">{{ col }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Hidden Object ID -->
+                <input type="hidden" id="objectId" name="object_id" value="{{ object.id }}" >
+
+                <!-- Submit -->
+                <button type="submit" class="btn btn-primary">Analyze</button>
+            </form>
+        </div>
+        <div class="col-md-8">
+            <div class="card h-100">
+                <div class="card-header"><strong>DataFrame.head(5)</strong></div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        {{ statistics.head|safe }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% if linear_regression_statistics and base64_image %}
+        <div class="row mb-4">
+            <!-- Forecast Plot Column -->
+            <div class="col-md-9">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">Forecast Plot</h5>
+                            {% if base64_image %}
+                                <div class="mt-4">
+                                    <img id="plotResult" src="{{ base64_image }}" alt="Plot of {{ base64_image }}" class="img-fluid rounded">
+                                </div>
+                            {% else %}
+                                <p class="text-muted mt-3">No image available.</p>
+                            {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Statistics Column -->
+            <div class="col-md-3">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">Model Summary</h5>
+                        <p><strong>R²:</strong> {{ linear_regression_statistics.r_2 }}</p>
+                        <p><strong>MSE:</strong> {{ linear_regression_statistics.mse }}</p>
+                        <p><strong>MAE:</strong> {{ linear_regression_statistics.mae }}</p>
+                        <p><strong>RMSE:</strong> {{ linear_regression_statistics.rmse }}</p>
+                        <p><strong>MAPE:</strong> {{ linear_regression_statistics.mape }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+{% endblock %}

@@ -24,4 +24,8 @@ urlpatterns = [
     path("", include("general.urls", namespace="general")),
     path("preprocessing/", include("preprocessing.urls", namespace="preprocessing")),
     path("integrations/", include("integrations.urls", namespace="integrations")),
+    path(
+        "linear_regression/",
+        include("linear_regression.urls", namespace="linear_regression"),
+    ),
 ]
