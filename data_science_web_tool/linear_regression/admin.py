@@ -1,3 +1,10 @@
 from django.contrib import admin
 
-# Register your models here.
+from linear_regression.models import LinearRegressionTimeSeriesResult
+
+
+@admin.register(LinearRegressionTimeSeriesResult)
+class LinearRegressionTimeSeriesResultAdmin(admin.ModelAdmin):
+    """
+    Admin for LinearRegressionTimeSeriesResult
+    """

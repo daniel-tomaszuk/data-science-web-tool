@@ -11,6 +11,7 @@ class LinearRegressionTimeSeriesResult(models.Model):
     )
 
     target_column = models.CharField()
+    lag_size = models.IntegerField(blank=True, null=True)
     predictions = models.JSONField(blank=True, null=True)
 
     r_2 = models.FloatField(blank=True, null=True, help_text="R2 score")
@@ -28,9 +29,14 @@ class LinearRegressionTimeSeriesResult(models.Model):
 
     def get_statistics(self) -> dict:
         return {
-            "r_2": self.r_2,
-            "mse": self.mse,
-            "mae": self.mae,
-            "rmse": self.rmse,
-            "mape": self.mape,
+            "r_2": round(self.r_2, 4),
+            "mse": round(self.mse, 4),
+            "mae": round(self.mae, 4),
+            "rmse": round(self.rmse, 4),
+            "mape": round(self.mape, 4),
         }
+
+    def __str__(self):
+        return (
+            f"Linear Regression TimeSeries Result {self.data} -> {self.target_column}"
+        )

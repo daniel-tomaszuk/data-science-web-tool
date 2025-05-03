@@ -36,13 +36,15 @@ class LinearRegressionView(DetailView):
             context["linear_regression_statistics"] = (
                 linear_regression_result.get_statistics()
             )
-            context["linear_regression_predictions"] = (
-                linear_regression_result.predictions
-            )
+
             base64_image: str = self._create_regression_plot(
                 linear_regression_result=linear_regression_result,
             )
             context["base64_image"] = base64_image
+            context["linear_regression_target_column"] = (
+                linear_regression_result.target_column
+            )
+            context["linear_regression_lag"] = linear_regression_result.lag_size
 
         return context
 
@@ -113,6 +115,7 @@ class LinearRegressionTimeSeriesCreateAPIView(CreateAPIView):
             data=data_instance,
             target_column=target_column,
             predictions=list(predictions),
+            lag_size=validated_data["lag"],
             **statistics,
         )
         return redirect(

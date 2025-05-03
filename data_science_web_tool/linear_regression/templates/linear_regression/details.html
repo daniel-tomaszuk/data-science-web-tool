@@ -17,7 +17,13 @@
                     <!-- Lag Size -->
                     <div class="col-6">
                         <label for="lag" class="form-label">Lag Size</label>
-                        <input type="number" class="form-control" id="lag" name="lag" value="1" min="1" required>
+                        <input type="number" class="form-control" id="lag" name="lag"
+                               {% if linear_regression_lag %}
+                                   value="{{ linear_regression_lag }}"
+                               {% else %}
+                                   value="1"
+                               {% endif %}
+                        min="1" required>
                     </div>
                     <!-- Normalize -->
                     <div class="col-6 d-flex align-items-center mt-3 mt-md-4">
@@ -33,7 +39,7 @@
                     <label for="column" class="form-label">Target Column</label>
                     <select class="form-select" id="targetColumn" name="target_column" required>
                         {% for col in regression_columns_options %}
-                            <option value="{{ col }}">{{ col }}</option>
+                            <option value="{{ col }}"{% if col == linear_regression_target_column %} selected{% endif %}>{{ col }}</option>
                         {% endfor %}
                     </select>
                 </div>
@@ -81,8 +87,8 @@
                         <h5 class="card-title">Model Summary</h5>
                         <p><strong>R²:</strong> {{ linear_regression_statistics.r_2 }}</p>
                         <p><strong>MSE:</strong> {{ linear_regression_statistics.mse }}</p>
-                        <p><strong>MAE:</strong> {{ linear_regression_statistics.mae }}</p>
                         <p><strong>RMSE:</strong> {{ linear_regression_statistics.rmse }}</p>
+                        <p><strong>MAE:</strong> {{ linear_regression_statistics.mae }}</p>
                         <p><strong>MAPE:</strong> {{ linear_regression_statistics.mape }}</p>
                     </div>
                 </div>
