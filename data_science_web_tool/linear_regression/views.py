@@ -29,6 +29,7 @@ class LinearRegressionView(DetailView):
             for column_name, column_type in self.object.data_columns.items()
             if column_type in LinearRegressionTimeSeriesHandler.SUPPORTED_COLUMN_TYPES
         ]
+        context["model_types"] = LinearRegressionTimeSeriesResult.MODEL_TYPES_CHOICES
 
         if linear_regression_result := self.object.linear_regression_timeseries_results.order_by(
             "-created_at"
@@ -45,6 +46,9 @@ class LinearRegressionView(DetailView):
                 linear_regression_result.target_column
             )
             context["linear_regression_lag"] = linear_regression_result.lag_size
+            context["linear_regression_model_type"] = (
+                linear_regression_result.model_type
+            )
 
         return context
 
@@ -98,17 +102,22 @@ class LinearRegressionTimeSeriesCreateAPIView(CreateAPIView):
         data_instance: Data = get_object_or_404(Data, pk=validated_data["object_id"])
         target_column: str = validated_data["target_column"]
         column_type: str = data_instance.data_columns.get(target_column)
-        if (
-            not column_type
-            or column_type
-            not in LinearRegressionTimeSeriesHandler.SUPPORTED_COLUMN_TYPES
-        ):
+
+        handler = LinearRegressionTimeSeriesResult.SUPPORTED_HANDLERS.get(
+            validated_data.get("model_type")
+        )
+        if not handler:
+            raise ValidationError("Selected model type is not supported.")
+
+        if not column_type or column_type not in handler.SUPPORTED_COLUMN_TYPES:
             raise ValidationError("Selected target column type is not supported.")
 
-        regression_handler = LinearRegressionTimeSeriesHandler(
+        max_tree_depth = validated_data.get("max_tree_depth")
+        regression_handler = handler(
             data=data_instance,
             column_name=target_column,
             lag_size=validated_data["lag"],
+            max_tree_depth=max_tree_depth,
         )
         predictions, statistics = regression_handler.handle()
         LinearRegressionTimeSeriesResult.objects.create(
@@ -116,6 +125,7 @@ class LinearRegressionTimeSeriesCreateAPIView(CreateAPIView):
             target_column=target_column,
             predictions=list(predictions),
             lag_size=validated_data["lag"],
+            max_tree_depth=max_tree_depth,
             **statistics,
         )
         return redirect(
