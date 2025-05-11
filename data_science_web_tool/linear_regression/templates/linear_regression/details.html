@@ -37,18 +37,19 @@
                                {% endif %}
                         min="1" required>
                     </div>
-                    <!-- Normalize -->
-                    <div class="col-4 d-flex align-items-center mt-3 mt-md-4">
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="normalize" name="normalize">
-                            <label class="form-check-label" for="normalize">Normalize data</label>
+                    <!-- Normalize & Max Depth -->
+                    <div class="row g-3 mt-1 md-1" id="tree-row">
+                        <div class="col-md-6 d-flex align-items-center">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="normalize" name="normalize">
+                                <label class="form-check-label" for="normalize">Normalize data</label>
+                            </div>
                         </div>
-                    </div>
-                    <!-- Regression Tree Max Depth -->
-                    <div id="treeParams" class="mb-3" style="display: none;">
-                        <div class="col-4">
-                            <label for="maxDepth" class="form-label">Max Depth</label>
-                            <input type="number" class="form-control" id="maxDepth" name="max_tree_depth" min="1" placeholder="3">
+                        <div class="col-md-6" id="treeParamsWrapper" style="min-height: 50px;">
+                            <div id="treeParams" style="opacity: 0; pointer-events: none; transition: opacity 0.3s;">
+                                <label for="maxDepth" class="form-label">Max Depth</label>
+                                <input type="number" class="form-control" id="maxDepth" name="max_tree_depth" min="1" placeholder="3">
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -125,15 +126,18 @@
     const modelTypeSelect = document.getElementById("modelType");
     const treeParams = document.getElementById("treeParams");
 
-    function toggleModelParams() {
+    function toggleMaxDepthParam() {
+        const treeParams = document.getElementById("treeParams");
         if (modelTypeSelect.value === "regression_tree") {
-            treeParams.style.display = "block";
+            treeParams.style.opacity = "1";
+            treeParams.style.pointerEvents = "auto";
         } else {
-            treeParams.style.display = "none";
+            treeParams.style.opacity = "0";
+            treeParams.style.pointerEvents = "none";
         }
     }
-    modelTypeSelect.addEventListener("change", toggleModelParams);
-    document.addEventListener("DOMContentLoaded", toggleModelParams);
+    modelTypeSelect.addEventListener("change", toggleMaxDepthParam);
+    document.addEventListener("DOMContentLoaded", toggleMaxDepthParam);
 </script>
 
 {% endblock %}
