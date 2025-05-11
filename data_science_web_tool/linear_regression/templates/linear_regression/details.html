@@ -11,6 +11,16 @@
             {% endif %}
             <form method="post" action="{% url 'linear_regression:linear-regression-time-series-create' %}">
                 {% csrf_token %}
+
+                <!-- Target Column -->
+                <div class="mb-3">
+                    <label for="column" class="form-label">Target Column</label>
+                    <select class="form-select" id="targetColumn" name="target_column" required>
+                        {% for col in regression_columns_options %}
+                            <option value="{{ col }}"{% if col == linear_regression_target_column %} selected{% endif %}>{{ col }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
                 <div class="row mb-3 align-items-center">
                     <!-- Model Type -->
                     <div class="col-md-8">
@@ -37,14 +47,8 @@
                                {% endif %}
                         min="1" required>
                     </div>
-                    <!-- Normalize & Max Depth -->
+                    <!-- Max Depth -->
                     <div class="row g-3 mt-1 md-1" id="tree-row">
-                        <div class="col-md-6 d-flex align-items-center">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="normalize" name="normalize">
-                                <label class="form-check-label" for="normalize">Normalize data</label>
-                            </div>
-                        </div>
                         <div class="col-md-6" id="treeParamsWrapper" style="min-height: 50px;">
                             <div id="treeParams" style="opacity: 0; pointer-events: none; transition: opacity 0.3s;">
                                 <label for="maxDepth" class="form-label">Max Depth</label>
@@ -52,16 +56,6 @@
                             </div>
                         </div>
                     </div>
-                </div>
-
-                <!-- Target Column -->
-                <div class="mb-3">
-                    <label for="column" class="form-label">Target Column</label>
-                    <select class="form-select" id="targetColumn" name="target_column" required>
-                        {% for col in regression_columns_options %}
-                            <option value="{{ col }}"{% if col == linear_regression_target_column %} selected{% endif %}>{{ col }}</option>
-                        {% endfor %}
-                    </select>
                 </div>
 
                 <!-- Hidden Object ID -->
