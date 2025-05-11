@@ -46,9 +46,8 @@ class LinearRegressionView(DetailView):
                 linear_regression_result.target_column
             )
             context["linear_regression_lag"] = linear_regression_result.lag_size
-            context["linear_regression_model_type"] = (
-                linear_regression_result.model_type
-            )
+            context["used_model_type"] = linear_regression_result.model_type
+            context["max_tree_depth"] = linear_regression_result.max_tree_depth or 1
 
         return context
 
@@ -126,6 +125,7 @@ class LinearRegressionTimeSeriesCreateAPIView(CreateAPIView):
             predictions=list(predictions),
             lag_size=validated_data["lag"],
             max_tree_depth=max_tree_depth,
+            model_type=validated_data["model_type"],
             **statistics,
         )
         return redirect(
