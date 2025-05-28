@@ -112,7 +112,7 @@ class LinearRegressionTimeSeriesCreateAPIView(CreateAPIView):
             raise ValidationError("Selected target column type is not supported.")
 
         max_tree_depth = validated_data.get("max_tree_depth")
-        lag_size = validated_data.get("lag_size")
+        lag_size = validated_data.get("lag")
         regression_handler = handler(
             data=data_instance,
             column_name=target_column,

@@ -37,7 +37,13 @@ class YahooFinanceListView(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["yfinance"] = _get_yfinance_data(self.BASE_TICKERS)
+        context["yfinance_error"] = None
+        try:
+            context["yfinance"] = _get_yfinance_data(self.BASE_TICKERS)
+        except Exception:
+            context["yfinance_error"] = (
+                "Yahoo Finance API is not available. Visit https://query2.finance.yahoo.com for more details."
+            )
         return context
 
 

@@ -5,6 +5,12 @@
 <div class="container my-5">
     <h1 class="text-center mb-4">yFinance Available Stocks</h1>
 
+    {% if yfinance_error %}
+        <div class="alert alert-danger" role="alert">
+            {{ yfinance_error }}
+        </div>
+    {% endif %}
+
     <!-- Global Form -->
     <form action="{% url 'integrations:yahoo-finance-download' %}" method="post" class="mb-5">
         {% csrf_token %}
