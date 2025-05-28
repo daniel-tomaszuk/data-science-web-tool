@@ -2,6 +2,7 @@ import contextlib
 import csv
 
 import chardet
+
 from preprocessing.data_sources_handlers.base import DataSourceHandlerBase
 
 

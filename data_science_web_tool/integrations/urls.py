@@ -1,4 +1,5 @@
 from django.urls import path
+
 from integrations import views
 
 app_name = "integrations"

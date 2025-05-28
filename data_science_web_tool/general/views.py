@@ -1,4 +1,5 @@
 from django.views.generic import ListView
+
 from preprocessing.models import Data
 
 

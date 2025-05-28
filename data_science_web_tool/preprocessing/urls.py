@@ -1,4 +1,5 @@
 from django.urls import path
+
 from preprocessing import views
 
 app_name = "preprocessing"
