@@ -16,6 +16,9 @@ from preprocessing.models import DataUpload
 
 @lru_cache
 def _get_yfinance_data(base_tickers: tuple) -> list[dict]:
+    """
+    Gets data from Yahoo Finance API.
+    """
     tickers_data = []
     tickers_batch = yf.Tickers(" ".join(base_tickers))
     for ticker_symbol, ticker in tickers_batch.tickers.items():
