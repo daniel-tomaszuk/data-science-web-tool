@@ -6,9 +6,7 @@ from django.shortcuts import redirect
 from django.utils import timezone
 from django.views.generic import TemplateView
 from integrations.serializers.serializers import YFinanceDataFormDownloadSerializer
-from rest_framework import status
 from rest_framework.generics import CreateAPIView
-from rest_framework.response import Response
 
 from preprocessing.models import Data
 from preprocessing.models import DataUpload
@@ -17,7 +15,7 @@ from preprocessing.models import DataUpload
 @lru_cache
 def _get_yfinance_data(base_tickers: tuple) -> list[dict]:
     """
-    Gets data from Yahoo Finance API.
+    Gets data from Yahoo Finance API and returns it as a list of dicts.
     """
     tickers_data = []
     tickers_batch = yf.Tickers(" ".join(base_tickers))
