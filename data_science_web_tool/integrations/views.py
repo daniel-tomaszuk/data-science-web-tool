@@ -5,9 +5,9 @@ from django.db import transaction
 from django.shortcuts import redirect
 from django.utils import timezone
 from django.views.generic import TemplateView
-from integrations.serializers.serializers import YFinanceDataFormDownloadSerializer
 from rest_framework.generics import CreateAPIView
 
+from integrations.serializers.serializers import YFinanceDataFormDownloadSerializer
 from preprocessing.models import Data
 from preprocessing.models import DataUpload
 
