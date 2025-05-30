@@ -23,7 +23,7 @@
                 </div>
                 <div class="row mb-3 align-items-center">
                     <!-- Model Type -->
-                    <div class="col-md-8">
+                    <div class="col-md-6">
                         <label for="modelType" class="form-label">Model</label>
                         <select class="form-select" id="modelType" name="model_type" required>
                             {% for model_type in model_types %}
@@ -37,7 +37,7 @@
                         </select>
                     </div>
                     <!-- Lag Size -->
-                    <div class="col-4">
+                    <div class="col-3">
                         <label for="lag" class="form-label">Lag Size</label>
                         <input type="number" class="form-control" id="lag" name="lag"
                                {% if linear_regression_lag %}
@@ -46,6 +46,17 @@
                                    value="1"
                                {% endif %}
                         min="1" required>
+                    </div>
+                    <!-- Forecast Horizon -->
+                    <div class="col-3">
+                        <label for="forecastHorizon" class="form-label">Forecast</label>
+                        <input type="number" class="form-control" id="forecastHorizon" name="forecast_horizon"
+                               {% if forecast_horizon %}
+                                   value="{{ forecast_horizon }}"
+                               {% else %}
+                                   value="0"
+                               {% endif %}
+                        min="0">
                     </div>
                     <!-- Max Depth -->
                     <div class="row g-3 mt-1 md-1" id="tree-row">
@@ -104,6 +115,8 @@
                         <p><strong>RMSE:</strong> {{ linear_regression_statistics.rmse }}</p>
                         <p><strong>MAE:</strong> {{ linear_regression_statistics.mae }}</p>
                         <p><strong>MAPE:</strong> {{ linear_regression_statistics.mape }}</p>
+                        <p><strong>Slope:</strong> {{ linear_regression_statistics.slope }}</p>
+                        <p><strong>Intercept:</strong> {{ linear_regression_statistics.intercept }}</p>
                     </div>
                 </div>
             </div>

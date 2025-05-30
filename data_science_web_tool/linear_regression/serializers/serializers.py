@@ -12,5 +12,6 @@ class LinearRegressionTimeSeriesCreateSerializer(serializers.Serializer):
     max_tree_depth = serializers.IntegerField(
         min_value=1, required=False, allow_null=True
     )
+    forecast_horizon = serializers.IntegerField(min_value=0, required=False, allow_null=True)
     target_column = serializers.CharField()
     object_id = serializers.IntegerField(required=True)

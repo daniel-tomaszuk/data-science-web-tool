@@ -22,25 +22,44 @@ class LinearRegressionBase:
         column_name: str,
         lag_size: int,
         max_tree_depth: int | None = None,
+        forecast_horizon: int | None = None,
     ):
         self.data = data
         self.column_name = column_name
         self.column_name_lagged = self.column_name + "_lagged"
         self.lag_size = lag_size
         self.max_tree_depth = max_tree_depth
+        self.forecast_horizon = forecast_horizon or 0
+
+    def _forecast_future_values(self, df: pd.DataFrame, model: DecisionTreeRegressor | LinearRegression) -> list:
+        """
+        Tries to predict n future value by predicting n-1 future value and appending it to the prediction list.
+        """
+        future_predictions = []
+        if not self.forecast_horizon:
+            return future_predictions
+
+        last_prediction = df[self.column_name_lagged].iloc[-1]
+        for _ in range(self.forecast_horizon):
+            input_df = pd.DataFrame([[last_prediction]], columns=[self.column_name_lagged])
+            next_pred = model.predict(input_df)[0]
+            future_predictions.append(next_pred)
+            last_prediction = next_pred
+
+        return future_predictions
 
 
 class LinearRegressionTimeSeriesHandler(LinearRegressionBase):
     """
-    Linear regression time series handler.
+    Linear regression time series handler with recursive forecast support.
     """
 
     def handle(self):
         df: pd.DataFrame = self.data.get_df()
         df[self.column_name_lagged] = df[self.column_name].shift(self.lag_size)
         df.dropna(inplace=True)
-        predictions, statistics = self._linear_regression(df)
-        return predictions, statistics
+        predictions, statistics, forecast = self._linear_regression(df)
+        return predictions, statistics, forecast
 
     def _linear_regression(self, df: pd.DataFrame) -> tuple:
         x = df[[self.column_name_lagged]]
@@ -55,8 +74,13 @@ class LinearRegressionTimeSeriesHandler(LinearRegressionBase):
             "mae": mean_absolute_error(y, y_predictions),
             "rmse": root_mean_squared_error(y, y_predictions),
             "mape": mean_absolute_percentage_error(y, y_predictions),
+
+            # y = m * x + b
+            "slope": model.coef_[0],  # m
+            "intercept": model.intercept_,  # b
         }
-        return y_predictions, statistics
+        future_predictions = self._forecast_future_values(df, model)
+        return y_predictions, statistics, future_predictions
 
 
 class RegressionTreeTimeSeriesHandler(LinearRegressionBase):
@@ -68,8 +92,8 @@ class RegressionTreeTimeSeriesHandler(LinearRegressionBase):
         df: pd.DataFrame = self.data.get_df()
         df[self.column_name_lagged] = df[self.column_name].shift(self.lag_size)
         df.dropna(inplace=True)
-        predictions, statistics = self._regression_tree(df)
-        return predictions, statistics
+        predictions, statistics, forecast = self._regression_tree(df)
+        return predictions, statistics, forecast
 
     def _regression_tree(self, df: pd.DataFrame) -> tuple:
         x = df[[self.column_name_lagged]]
@@ -85,4 +109,5 @@ class RegressionTreeTimeSeriesHandler(LinearRegressionBase):
             "rmse": root_mean_squared_error(y, y_predictions),
             "mape": mean_absolute_percentage_error(y, y_predictions),
         }
-        return y_predictions, statistics
+        future_predictions = self._forecast_future_values(df, model)
+        return y_predictions, statistics, future_predictions

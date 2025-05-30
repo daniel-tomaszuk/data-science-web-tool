@@ -2,6 +2,7 @@ import base64
 import io
 
 import matplotlib.pyplot as plt
+import numpy as np
 import seaborn as sns
 from django.shortcuts import get_object_or_404
 from django.shortcuts import redirect
@@ -48,6 +49,7 @@ class LinearRegressionView(DetailView):
             context["linear_regression_lag"] = linear_regression_result.lag_size
             context["used_model_type"] = linear_regression_result.model_type
             context["max_tree_depth"] = linear_regression_result.max_tree_depth or 1
+            context["forecast_horizon"] = linear_regression_result.forecast_horizon or 0
 
         return context
 
@@ -57,10 +59,14 @@ class LinearRegressionView(DetailView):
         df = self.object.get_df()
         target_column: str = linear_regression_result.target_column
 
-        # adjust data sizes
+        # adjust data sizes for lagged predictions
         predicted_data = linear_regression_result.predictions
+        forecast_horizon_data = linear_regression_result.forecast
         original_data = df[target_column][-len(predicted_data) :]
         index = df.index[-len(predicted_data) :]
+
+        step = index[-1] - index[-2] if len(index) > 1 else 1
+        forecast_index = [index[-1] + step * (i + 1) for i in range(len(forecast_horizon_data))]
 
         plt.figure(figsize=(8, 5))
         sns.lineplot(
@@ -69,6 +75,17 @@ class LinearRegressionView(DetailView):
         sns.lineplot(
             x=index, y=predicted_data, label=f"Predicted data of {target_column}"
         )
+        sns.lineplot(
+            x=forecast_index,
+            y=forecast_horizon_data,
+            label=f"Forecast data of {target_column}",
+            linestyle="--",
+        )
+        if linear_regression_result.slope and linear_regression_result.intercept:
+            linear_space = np.linspace(index.min(), index.max(), 100)
+            y_regression_values = linear_regression_result.slope * linear_space + linear_regression_result.intercept
+            sns.lineplot(x=linear_space, y=y_regression_values, label="Linear Regression Line", linestyle=":")
+
         plt.grid(True)
         plt.tight_layout()
 
@@ -113,19 +130,23 @@ class LinearRegressionTimeSeriesCreateAPIView(CreateAPIView):
 
         max_tree_depth = validated_data.get("max_tree_depth")
         lag_size = validated_data.get("lag")
+        forecast_horizon = validated_data.get("forecast_horizon")
         regression_handler = handler(
             data=data_instance,
             column_name=target_column,
             lag_size=lag_size,
             max_tree_depth=max_tree_depth,
+            forecast_horizon=forecast_horizon,
         )
-        predictions, statistics = regression_handler.handle()
+        predictions, statistics, forecast = regression_handler.handle()
         LinearRegressionTimeSeriesResult.objects.create(
             data=data_instance,
             target_column=target_column,
             predictions=list(predictions),
+            forecast=list(forecast),
             lag_size=lag_size,
             max_tree_depth=max_tree_depth,
+            forecast_horizon=forecast_horizon,
             model_type=validated_data["model_type"],
             **statistics,
         )
