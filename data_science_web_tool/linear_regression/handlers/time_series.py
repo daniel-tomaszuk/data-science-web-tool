@@ -42,9 +42,10 @@ class LinearRegressionBase:
         last_prediction = df[self.column_name_lagged].iloc[-1]
         for _ in range(self.forecast_horizon):
             input_df = pd.DataFrame([[last_prediction]], columns=[self.column_name_lagged])
-            next_pred = model.predict(input_df)[0]
-            future_predictions.append(next_pred)
-            last_prediction = next_pred
+            predicted_diff = model.predict(input_df)[0]
+            next_prediction = last_prediction + predicted_diff
+            future_predictions.append(next_prediction)
+            last_prediction = next_prediction
 
         return future_predictions
 
@@ -57,23 +58,27 @@ class LinearRegressionTimeSeriesHandler(LinearRegressionBase):
     def handle(self):
         df: pd.DataFrame = self.data.get_df()
         df[self.column_name_lagged] = df[self.column_name].shift(self.lag_size)
+        df["values_diff"] = df[self.column_name] - df[self.column_name_lagged]
         df.dropna(inplace=True)
         predictions, statistics, forecast = self._linear_regression(df)
         return predictions, statistics, forecast
 
     def _linear_regression(self, df: pd.DataFrame) -> tuple:
         x = df[[self.column_name_lagged]]
-        y = df[self.column_name]
+        # y = df[self.column_name]
+        y = df["values_diff"]
 
         model = LinearRegression()
         model.fit(x, y)
-        y_predictions = model.predict(x)
+        y_predictions_diff = model.predict(x)
+        y_predictions = df[self.column_name_lagged] + y_predictions_diff
+
         statistics = {
-            "r_2": r2_score(y, y_predictions),
-            "mse": mean_squared_error(y, y_predictions),
-            "mae": mean_absolute_error(y, y_predictions),
-            "rmse": root_mean_squared_error(y, y_predictions),
-            "mape": mean_absolute_percentage_error(y, y_predictions),
+            "r_2": r2_score(df[self.column_name], y_predictions),
+            "mse": mean_squared_error(df[self.column_name], y_predictions),
+            "mae": mean_absolute_error(df[self.column_name], y_predictions),
+            "rmse": root_mean_squared_error(df[self.column_name], y_predictions),
+            "mape": mean_absolute_percentage_error(df[self.column_name], y_predictions),
 
             # y = m * x + b
             "slope": model.coef_[0],  # m
