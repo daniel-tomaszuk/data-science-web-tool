@@ -1,8 +1,10 @@
 import base64
 import io
+from datetime import timedelta
 
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 import seaborn as sns
 from django.shortcuts import get_object_or_404
 from django.shortcuts import redirect
@@ -63,9 +65,11 @@ class LinearRegressionView(DetailView):
         predicted_data = linear_regression_result.predictions
         forecast_horizon_data = linear_regression_result.forecast
         original_data = df[target_column][-len(predicted_data) :]
-        index = df.index[-len(predicted_data) :]
 
-        step = index[-1] - index[-2] if len(index) > 1 else 1
+        df["Date"] = pd.to_datetime(df["Date"])
+        index = list(df.Date[-len(predicted_data):])
+
+        step = (index[-1] - index[-2]) if len(index) > 1 else pd.Timedelta(days=1)
         forecast_index = [index[-1] + step * (i + 1) for i in range(len(forecast_horizon_data))]
 
         plt.figure(figsize=(8, 5))
@@ -81,11 +85,20 @@ class LinearRegressionView(DetailView):
             label=f"Forecast data of {target_column}",
             linestyle="--",
         )
-        if linear_regression_result.slope and linear_regression_result.intercept:
-            linear_space = np.linspace(index.min(), index.max(), 100)
-            y_regression_values = linear_regression_result.slope * linear_space + linear_regression_result.intercept
-            sns.lineplot(x=linear_space, y=y_regression_values, label="Linear Regression Line", linestyle=":")
+        if linear_regression_result.slope is not None and linear_regression_result.intercept is not None:
+            # Take first data and it's ordinal value so later it's possible to scale down properly
+            base_date = index[0]
+            base_ordinal = base_date.toordinal()
 
+            ordinal_index = [d.toordinal() - base_ordinal for d in index]
+            linear_space = np.linspace(min(ordinal_index), max(ordinal_index), 100)
+            y_regression_values = linear_regression_result.slope * linear_space + linear_regression_result.intercept
+            date_space = [base_date + timedelta(days=int(d)) for d in linear_space]
+
+            sns.lineplot(x=date_space, y=y_regression_values, label="Linear Regression Line", linestyle=":")
+
+        plt.xticks(rotation=45)
+        plt.gcf().autofmt_xdate()
         plt.grid(True)
         plt.tight_layout()
 
