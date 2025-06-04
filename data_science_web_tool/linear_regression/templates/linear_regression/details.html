@@ -58,6 +58,11 @@
                                {% endif %}
                         min="0">
                     </div>
+                    <!-- Train / Validation / Test slider -->
+                    <div class="g-3 mt-1 md-1 pt-5 pd-5">
+                        <div id="rangeSlider"></div>
+                        <label for="rangeSlider" class="form-label  g-3 mt-1 md-1">Train | Validation | Test</label>
+                    </div>
                     <!-- Max Depth -->
                     <div class="row g-3 mt-1 md-1" id="tree-row">
                         <div class="col-md-6" id="treeParamsWrapper" style="min-height: 50px;">
@@ -71,6 +76,9 @@
 
                 <!-- Hidden Object ID -->
                 <input type="hidden" id="objectId" name="object_id" value="{{ object.id }}" >
+                <input type="hidden" name="train_percent" id="train-input">
+                <input type="hidden" name="val_percent" id="val-input">
+                <input type="hidden" name="test_percent" id="test-input">
 
                 <!-- Submit -->
                 <button type="submit" class="btn btn-primary">Analyze</button>
@@ -146,5 +154,35 @@
     modelTypeSelect.addEventListener("change", toggleMaxDepthParam);
     document.addEventListener("DOMContentLoaded", toggleMaxDepthParam);
 </script>
+<script>
+    const slider = document.getElementById("rangeSlider");
+
+    noUiSlider.create(slider, {
+        start: [50, 80],
+        connect: [true, true, true],
+        range: { min: 1, max: 99 },
+        step: 1,
+        tooltips: [true, true],
+        format: {
+          to: value => Math.round(value),
+          from: value => Number(value)
+        },
+    });
+
+    const trainInput = document.getElementById("train-input");
+    const valInput = document.getElementById("val-input");
+    const testInput = document.getElementById("test-input");
+
+    slider.noUiSlider.on("update", function (values) {
+    const train = parseInt(values[0]);
+    const val = parseInt(values[1]) - train;
+    const test = 100 - parseInt(values[1]);
+
+    trainInput.value = train;
+    valInput.value = val;
+    testInput.value = test;
+    });
+</script>
+
 
 {% endblock %}
