@@ -76,9 +76,9 @@
 
                 <!-- Hidden Object ID -->
                 <input type="hidden" id="objectId" name="object_id" value="{{ object.id }}" >
-                <input type="hidden" name="train_percent" id="train-input">
-                <input type="hidden" name="val_percent" id="val-input">
-                <input type="hidden" name="test_percent" id="test-input">
+                <input type="hidden" name="train_percent" id="train-input" value="">
+                <input type="hidden" name="val_percent" id="val-input" value="">
+                <input type="hidden" name="test_percent" id="test-input" value="">
 
                 <!-- Submit -->
                 <button type="submit" class="btn btn-primary">Analyze</button>
@@ -118,6 +118,11 @@
                 <div class="card h-100">
                     <div class="card-body">
                         <h5 class="card-title">Model Summary</h5>
+                        <br>
+                        <p><strong>Train set percentage:</strong> {{ train_percentage }}</p>
+                        <p><strong>Validation set percentage</strong> {{ validation_percentage }}</p>
+                        <p><strong>Test set percentage:</strong> {{ test_percentage }}</p>
+                        <br>
                         <p><strong>R²:</strong> {{ linear_regression_statistics.r_2 }}</p>
                         <p><strong>MSE:</strong> {{ linear_regression_statistics.mse }}</p>
                         <p><strong>RMSE:</strong> {{ linear_regression_statistics.rmse }}</p>
@@ -125,6 +130,7 @@
                         <p><strong>MAPE:</strong> {{ linear_regression_statistics.mape }}</p>
                         <p><strong>Slope:</strong> {{ linear_regression_statistics.slope }}</p>
                         <p><strong>Intercept:</strong> {{ linear_regression_statistics.intercept }}</p>
+
                     </div>
                 </div>
             </div>
@@ -156,9 +162,11 @@
 </script>
 <script>
     const slider = document.getElementById("rangeSlider");
+    const initialTrain = {{ train_percentage|default:50 }};
+    const initialVal = {{ validation_percentage|default:20 }};
 
     noUiSlider.create(slider, {
-        start: [50, 80],
+        start: [initialTrain, initialTrain + initialVal],
         connect: [true, true, true],
         range: { min: 1, max: 99 },
         step: 1,
@@ -182,6 +190,7 @@
     valInput.value = val;
     testInput.value = test;
     });
+
 </script>
 
 

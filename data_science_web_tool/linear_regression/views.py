@@ -52,6 +52,9 @@ class LinearRegressionView(DetailView):
             context["used_model_type"] = linear_regression_result.model_type
             context["max_tree_depth"] = linear_regression_result.max_tree_depth or 1
             context["forecast_horizon"] = linear_regression_result.forecast_horizon or 0
+            context["train_percentage"] = linear_regression_result.train_percentage
+            context["validation_percentage"] = linear_regression_result.validation_percentage
+            context["test_percentage"] = linear_regression_result.test_percentage
 
         return context
 
@@ -144,12 +147,20 @@ class LinearRegressionTimeSeriesCreateAPIView(CreateAPIView):
         max_tree_depth = validated_data.get("max_tree_depth")
         lag_size = validated_data.get("lag")
         forecast_horizon = validated_data.get("forecast_horizon")
+
+        train_percentage = validated_data["train_percent"]
+        validation_percentage = validated_data["val_percent"]
+        test_percentage = validated_data["test_percent"]
+
         regression_handler = handler(
             data=data_instance,
             column_name=target_column,
             lag_size=lag_size,
             max_tree_depth=max_tree_depth,
             forecast_horizon=forecast_horizon,
+            train_percentage=train_percentage,
+            validation_percentage=validation_percentage,
+            test_percentage=test_percentage,
         )
         predictions, statistics, forecast = regression_handler.handle()
         LinearRegressionTimeSeriesResult.objects.create(
@@ -161,6 +172,9 @@ class LinearRegressionTimeSeriesCreateAPIView(CreateAPIView):
             max_tree_depth=max_tree_depth,
             forecast_horizon=forecast_horizon,
             model_type=validated_data["model_type"],
+            train_percentage=train_percentage,
+            validation_percentage=validation_percentage,
+            test_percentage=test_percentage,
             **statistics,
         )
         return redirect(

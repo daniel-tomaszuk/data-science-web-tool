@@ -23,6 +23,9 @@ class LinearRegressionBase:
         lag_size: int,
         max_tree_depth: int | None = None,
         forecast_horizon: int | None = None,
+        train_percentage: int | None = None,
+        validation_percentage: int | None = None,
+        test_percentage: int | None = None,
     ):
         self.data = data
         self.column_name = column_name
@@ -30,6 +33,9 @@ class LinearRegressionBase:
         self.lag_size = lag_size
         self.max_tree_depth = max_tree_depth
         self.forecast_horizon = forecast_horizon or 0
+        self.train_percentage = train_percentage
+        self.validation_percentage = validation_percentage
+        self.test_percentage = test_percentage
 
     def _forecast_future_values(self, df: pd.DataFrame, model: DecisionTreeRegressor | LinearRegression) -> list:
         """

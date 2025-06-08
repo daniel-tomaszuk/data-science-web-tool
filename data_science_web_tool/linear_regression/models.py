@@ -28,6 +28,10 @@ class LinearRegressionTimeSeriesResult(models.Model):
     predictions = models.JSONField(blank=True, null=True)
     forecast = models.JSONField(blank=True, null=True)
 
+    train_percentage = models.FloatField(blank=True, null=True)
+    validation_percentage = models.FloatField(blank=True, null=True)
+    test_percentage = models.FloatField(blank=True, null=True)
+
     r_2 = models.FloatField(blank=True, null=True, help_text="R2 score")
     mse = models.FloatField(blank=True, null=True, help_text="Mean squared error")
     mae = models.FloatField(blank=True, null=True, help_text="Mean absolute error")
