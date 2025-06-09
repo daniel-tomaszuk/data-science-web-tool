@@ -37,8 +37,13 @@ class LinearRegressionView(DetailView):
         if linear_regression_result := self.object.linear_regression_timeseries_results.order_by(
             "-created_at"
         ).first():
-            context["linear_regression_statistics"] = (
-                linear_regression_result.get_statistics()
+            context["linear_regression_statistics"] = {
+                **linear_regression_result.get_statistics(statistics_type="val"),
+                **linear_regression_result.get_statistics(statistics_type="test"),
+            }
+            context["slope"] = round(linear_regression_result.slope, 4) if linear_regression_result.slope else None
+            context["intercept"] = (
+                round(linear_regression_result.intercept, 4) if linear_regression_result.intercept else None
             )
 
             base64_image: str = self._create_regression_plot(
@@ -64,32 +69,47 @@ class LinearRegressionView(DetailView):
         df = self.object.get_df()
         target_column: str = linear_regression_result.target_column
 
-        # adjust data sizes for lagged predictions
-        predicted_data = linear_regression_result.predictions
-        forecast_horizon_data = linear_regression_result.forecast
-        original_data = df[target_column][-len(predicted_data) :]
+        val_predicted_data = linear_regression_result.val_predictions or []
+        test_predicted_data = linear_regression_result.test_predictions or []
+
+        forecast_horizon_data = linear_regression_result.forecast or []
+        original_data = df[target_column][-(len(df) - linear_regression_result.lag_size):]
 
         df["Date"] = pd.to_datetime(df["Date"])
-        index = list(df.Date[-len(predicted_data):])
+        index = list(df.Date[-(len(df) - linear_regression_result.lag_size):])
 
-        step = (index[-1] - index[-2]) if len(index) > 1 else pd.Timedelta(days=1)
-        forecast_index = [index[-1] + step * (i + 1) for i in range(len(forecast_horizon_data))]
+        plt.figure(figsize=(12, 8))
+        if len(original_data):
+            sns.lineplot(
+                x=index, y=original_data, label=f"Original data of {target_column}"
+            )
+        if len(val_predicted_data):
+            val_index = list(val_predicted_data.keys())
+            val_index = index[int(val_index[0]):int(val_index[-1]) + 1]
+            val_values = list(val_predicted_data.values())
+            sns.lineplot(
+                x=val_index, y=val_values, label=f"Validation Predicted data of {target_column}",
+            )
 
-        plt.figure(figsize=(8, 5))
-        sns.lineplot(
-            x=index, y=original_data, label=f"Original data of {target_column}"
-        )
-        sns.lineplot(
-            x=index, y=predicted_data, label=f"Predicted data of {target_column}"
-        )
-        sns.lineplot(
-            x=forecast_index,
-            y=forecast_horizon_data,
-            label=f"Forecast data of {target_column}",
-            linestyle="--",
-        )
+        if len(test_predicted_data):
+            test_index = list(test_predicted_data.keys())
+            test_index = index[int(test_index[0])::]
+            test_values = list(test_predicted_data.values())[0:len(test_index)]
+            sns.lineplot(
+                x=test_index, y=test_values, label=f"Test Predicted data of {target_column}",
+            )
+
+        if len(forecast_horizon_data):
+            step = (index[-1] - index[-2]) if len(index) > 1 else pd.Timedelta(days=1)
+            forecast_index = [index[-1] + step * (i + 1) for i in range(len(forecast_horizon_data))]
+            sns.lineplot(
+                x=forecast_index,
+                y=forecast_horizon_data,
+                label=f"Forecast data of {target_column}",
+                linestyle="--",
+            )
+
         if linear_regression_result.slope is not None and linear_regression_result.intercept is not None:
-            # Take first data and it's ordinal value so later it's possible to scale down properly
             base_date = index[0]
             base_ordinal = base_date.toordinal()
 
@@ -101,6 +121,7 @@ class LinearRegressionView(DetailView):
             sns.lineplot(x=date_space, y=y_regression_values, label="Linear Regression Line", linestyle=":")
 
         plt.xticks(rotation=45)
+        plt.ylim(top=800)
         plt.gcf().autofmt_xdate()
         plt.grid(True)
         plt.tight_layout()
@@ -162,12 +183,11 @@ class LinearRegressionTimeSeriesCreateAPIView(CreateAPIView):
             validation_percentage=validation_percentage,
             test_percentage=test_percentage,
         )
-        predictions, statistics, forecast = regression_handler.handle()
+        model_metadata, forecast = regression_handler.handle()
         LinearRegressionTimeSeriesResult.objects.create(
             data=data_instance,
             target_column=target_column,
-            predictions=list(predictions),
-            forecast=list(forecast),
+            forecast=forecast,
             lag_size=lag_size,
             max_tree_depth=max_tree_depth,
             forecast_horizon=forecast_horizon,
@@ -175,7 +195,12 @@ class LinearRegressionTimeSeriesCreateAPIView(CreateAPIView):
             train_percentage=train_percentage,
             validation_percentage=validation_percentage,
             test_percentage=test_percentage,
-            **statistics,
+            val_predictions=dict(model_metadata["val_predictions"]),
+            test_predictions=dict(model_metadata["test_predictions"]),
+            slope=model_metadata["slope"],
+            intercept=model_metadata["intercept"],
+            **model_metadata["val_statistics"],
+            **model_metadata["test_statistics"],
         )
         return redirect(
             "linear_regression:linear-regression-details", pk=data_instance.id

@@ -1,3 +1,4 @@
+
 import pandas as pd
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_absolute_error
@@ -46,6 +47,7 @@ class LinearRegressionBase:
             return future_predictions
 
         last_prediction = df[self.column_name_lagged].iloc[-1]
+        future_predictions.append(last_prediction)
         for _ in range(self.forecast_horizon):
             input_df = pd.DataFrame([[last_prediction]], columns=[self.column_name_lagged])
             predicted_diff = model.predict(input_df)[0]
@@ -54,6 +56,40 @@ class LinearRegressionBase:
             last_prediction = next_prediction
 
         return future_predictions
+
+
+    def _get_model_training_data_sets(self, df: pd.DataFrame) -> tuple[pd.DataFrame, ...]:
+        """
+        Returns training, validation and test data sets by getting data percentages selected by the user.
+        """
+        total_rows: int = len(df)
+
+        train_size = round(total_rows * self.train_percentage / 100)
+        val_size = round(total_rows * self.validation_percentage / 100)
+        if train_size + val_size > total_rows:
+            val_size = total_rows - train_size
+
+        # Now define the index bounds
+        train_end = train_size
+        val_end = train_size + val_size
+
+        train_df = df.iloc[:train_end]
+        val_df = df.iloc[train_end:val_end]
+        test_df = df.iloc[val_end:]
+
+        return train_df, val_df, test_df
+
+
+    def _get_model_predictions_and_statistics(self, df: pd.DataFrame, model: LinearRegression | DecisionTreeRegressor, keys_prefix: str = "",) -> tuple[pd.DataFrame, dict]:
+        predictions = df[self.column_name_lagged] + model.predict(df[[self.column_name_lagged]])
+        actual = df[self.column_name]
+        return predictions, {
+            keys_prefix + "r_2": r2_score(actual, predictions),
+            keys_prefix + "mse": mean_squared_error(actual, predictions),
+            keys_prefix + "mae": mean_absolute_error(actual, predictions),
+            keys_prefix + "rmse": root_mean_squared_error(actual, predictions),
+            keys_prefix + "mape": mean_absolute_percentage_error(actual, predictions),
+        }
 
 
 class LinearRegressionTimeSeriesHandler(LinearRegressionBase):
@@ -66,32 +102,36 @@ class LinearRegressionTimeSeriesHandler(LinearRegressionBase):
         df[self.column_name_lagged] = df[self.column_name].shift(self.lag_size)
         df["values_diff"] = df[self.column_name] - df[self.column_name_lagged]
         df.dropna(inplace=True)
-        predictions, statistics, forecast = self._linear_regression(df)
-        return predictions, statistics, forecast
 
-    def _linear_regression(self, df: pd.DataFrame) -> tuple:
-        x = df[[self.column_name_lagged]]
+        train_df, val_df, test_df = self._get_model_training_data_sets(df)
+        model_metadata, forecast = self._linear_regression(train_df, val_df, test_df)
+        return model_metadata, forecast
+
+    def _linear_regression(self, train_df: pd.DataFrame, val_df: pd.DataFrame, test_df: pd.DataFrame,) -> tuple:
+        x = train_df[[self.column_name_lagged]]
         # y = df[self.column_name]
-        y = df["values_diff"]
+        y = train_df["values_diff"]
 
+        # Train the model to predict values differences
         model = LinearRegression()
         model.fit(x, y)
-        y_predictions_diff = model.predict(x)
-        y_predictions = df[self.column_name_lagged] + y_predictions_diff
 
-        statistics = {
-            "r_2": r2_score(df[self.column_name], y_predictions),
-            "mse": mean_squared_error(df[self.column_name], y_predictions),
-            "mae": mean_absolute_error(df[self.column_name], y_predictions),
-            "rmse": root_mean_squared_error(df[self.column_name], y_predictions),
-            "mape": mean_absolute_percentage_error(df[self.column_name], y_predictions),
+        # Get statistics for validation and train sets
+        val_predictions, val_statistics = self._get_model_predictions_and_statistics(val_df, model, keys_prefix="val_")
+        test_predictions, test_statistics  = self._get_model_predictions_and_statistics(test_df, model, keys_prefix="test_")
+        model_metadata = {
+            "val_predictions": val_predictions,
+            "val_statistics": val_statistics,
+            "test_predictions": test_predictions,
+            "test_statistics": test_statistics,
 
             # y = m * x + b
             "slope": model.coef_[0],  # m
             "intercept": model.intercept_,  # b
         }
-        future_predictions = self._forecast_future_values(df, model)
-        return y_predictions, statistics, future_predictions
+
+        future_forecast = self._forecast_future_values(test_df, model)
+        return model_metadata, future_forecast
 
 
 class RegressionTreeTimeSeriesHandler(LinearRegressionBase):
@@ -100,6 +140,8 @@ class RegressionTreeTimeSeriesHandler(LinearRegressionBase):
     """
 
     def handle(self):
+        raise Exception("Regression tree is not implemented.")
+
         df: pd.DataFrame = self.data.get_df()
         df[self.column_name_lagged] = df[self.column_name].shift(self.lag_size)
         df.dropna(inplace=True)

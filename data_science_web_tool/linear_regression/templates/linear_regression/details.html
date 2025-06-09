@@ -81,7 +81,7 @@
                 <input type="hidden" name="test_percent" id="test-input" value="">
 
                 <!-- Submit -->
-                <button type="submit" class="btn btn-primary">Analyze</button>
+                <button type="submit" class="btn btn-primary mb-3">Analyze</button>
             </form>
         </div>
         <div class="col-md-8">
@@ -95,13 +95,18 @@
             </div>
         </div>
     </div>
-    {% if linear_regression_statistics and base64_image %}
+
+    {% if not base64_image %}
+        <p class="mt-5 mb-5 alert alert-info">Data not found</p>
+    {% endif %}
+
+    {% if base64_image %}
         <div class="row mb-4">
             <!-- Forecast Plot Column -->
             <div class="col-md-9">
                 <div class="card h-100">
                     <div class="card-body">
-                        <h5 class="card-title">Forecast Plot</h5>
+                        <h5 class="card-title">Time series plots for {{ object }}</h5>
                             {% if base64_image %}
                                 <div class="mt-4">
                                     <img id="plotResult" src="{{ base64_image }}" alt="Plot of {{ base64_image }}" class="img-fluid rounded">
@@ -123,13 +128,22 @@
                         <p><strong>Validation set percentage</strong> {{ validation_percentage }}</p>
                         <p><strong>Test set percentage:</strong> {{ test_percentage }}</p>
                         <br>
-                        <p><strong>R²:</strong> {{ linear_regression_statistics.r_2 }}</p>
-                        <p><strong>MSE:</strong> {{ linear_regression_statistics.mse }}</p>
-                        <p><strong>RMSE:</strong> {{ linear_regression_statistics.rmse }}</p>
-                        <p><strong>MAE:</strong> {{ linear_regression_statistics.mae }}</p>
-                        <p><strong>MAPE:</strong> {{ linear_regression_statistics.mape }}</p>
-                        <p><strong>Slope:</strong> {{ linear_regression_statistics.slope }}</p>
-                        <p><strong>Intercept:</strong> {{ linear_regression_statistics.intercept }}</p>
+                        <p><strong>Statistics for validation data set</strong></p>
+                        <p><strong>R²:</strong> {{ linear_regression_statistics.val_r_2 }}</p>
+                        <p><strong>MSE:</strong> {{ linear_regression_statistics.val_mse }}</p>
+                        <p><strong>RMSE:</strong> {{ linear_regression_statistics.val_rmse }}</p>
+                        <p><strong>MAE:</strong> {{ linear_regression_statistics.val_mae }}</p>
+                        <p><strong>MAPE:</strong> {{ linear_regression_statistics.val_mape }}</p>
+                        <br>
+                        <p><strong>Statistics for test data set</strong></p>
+                        <p><strong>R²:</strong> {{ linear_regression_statistics.test_r_2 }}</p>
+                        <p><strong>MSE:</strong> {{ linear_regression_statistics.test_mse }}</p>
+                        <p><strong>RMSE:</strong> {{ linear_regression_statistics.test_rmse }}</p>
+                        <p><strong>MAE:</strong> {{ linear_regression_statistics.test_mae }}</p>
+                        <p><strong>MAPE:</strong> {{ linear_regression_statistics.test_mape }}</p>
+                        <br>
+                        <p><strong>Slope:</strong> {{ slope }}</p>
+                        <p><strong>Intercept:</strong> {{ intercept }}</p>
 
                     </div>
                 </div>

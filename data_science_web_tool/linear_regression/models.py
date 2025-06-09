@@ -25,38 +25,53 @@ class LinearRegressionTimeSeriesResult(models.Model):
     lag_size = models.IntegerField(blank=True, null=True)
     max_tree_depth = models.IntegerField(blank=True, null=True)
     forecast_horizon = models.IntegerField(blank=True, null=True)
-    predictions = models.JSONField(blank=True, null=True)
+
+    val_predictions = models.JSONField(blank=True, null=True, help_text="Validation data set predictions")
+    test_predictions = models.JSONField(blank=True, null=True, help_text="Test data set predictions")
+
     forecast = models.JSONField(blank=True, null=True)
 
     train_percentage = models.FloatField(blank=True, null=True)
     validation_percentage = models.FloatField(blank=True, null=True)
     test_percentage = models.FloatField(blank=True, null=True)
 
-    r_2 = models.FloatField(blank=True, null=True, help_text="R2 score")
-    mse = models.FloatField(blank=True, null=True, help_text="Mean squared error")
-    mae = models.FloatField(blank=True, null=True, help_text="Mean absolute error")
-    rmse = models.FloatField(blank=True, null=True, help_text="Root mean square error")
-    mape = models.FloatField(
+    val_r_2 = models.FloatField(blank=True, null=True, help_text="R2 score for validation data")
+    val_mse = models.FloatField(blank=True, null=True, help_text="Mean squared error for validation data")
+    val_mae = models.FloatField(blank=True, null=True, help_text="Mean absolute error for validation data")
+    val_rmse = models.FloatField(blank=True, null=True, help_text="Root mean square error for validation data")
+    val_mape = models.FloatField(
         blank=True,
         null=True,
-        help_text="Mean absolute percentage error",
+        help_text="Mean absolute percentage error for validation data",
     )
+
+    test_r_2 = models.FloatField(blank=True, null=True, help_text="R2 score for test data")
+    test_mse = models.FloatField(blank=True, null=True, help_text="Mean squared error for test data")
+    test_mae = models.FloatField(blank=True, null=True, help_text="Mean absolute error for test data")
+    test_rmse = models.FloatField(blank=True, null=True, help_text="Root mean square error for test data")
+    test_mape = models.FloatField(
+        blank=True,
+        null=True,
+        help_text="Mean absolute percentage error for test data",
+    )
+
     slope = models.FloatField(blank=True, null=True)
     intercept = models.FloatField(blank=True, null=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    def get_statistics(self) -> dict:
-        return {
-            "r_2": round(self.r_2, 4),
-            "mse": round(self.mse, 4),
-            "mae": round(self.mae, 4),
-            "rmse": round(self.rmse, 4),
-            "mape": round(self.mape, 4),
-            "slope": round(self.slope, 4) if self.slope else None,
-            "intercept": round(self.intercept, 4) if self.intercept else None,
-        }
+    def get_statistics(self, statistics_type: str) -> dict:
+        statistics_keys = (
+            "r_2", "mse", "mae", "rmse", "mape"
+        )
+        statistics = {            "slope": round(self.slope, 4) if self.slope else None,
+            "intercept": round(self.intercept, 4) if self.intercept else None,}
+        for key in statistics_keys:
+            key: str = statistics_type + "_" + key
+            statistics[key] = getattr(self, key)
+
+        return statistics
 
     def __str__(self):
         return (
