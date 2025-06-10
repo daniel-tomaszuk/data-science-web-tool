@@ -83,20 +83,31 @@ class LinearRegressionView(DetailView):
             sns.lineplot(
                 x=index, y=original_data, label=f"Original data of {target_column}"
             )
+        val_index = []
         if len(val_predicted_data):
             val_index = list(val_predicted_data.keys())
-            val_index = index[int(val_index[0]):int(val_index[-1]) + 1]
+            val_index_dates = index[int(val_index[0]):int(val_index[-1]) + 1]
             val_values = list(val_predicted_data.values())
             sns.lineplot(
-                x=val_index, y=val_values, label=f"Validation Predicted data of {target_column}",
+                x=val_index_dates, y=val_values, label=f"Validation Predicted data of {target_column}",
             )
 
         if len(test_predicted_data):
             test_index = list(test_predicted_data.keys())
-            test_index = index[int(test_index[0])::]
+            if val_predicted_data and val_index:
+                # connect plots so transition is smooth - last validation point with first test point
+                last_validation_point_index = val_index[-1]
+                test_index = [last_validation_point_index] + test_index
+                test_predicted_data = {
+                    last_validation_point_index: val_predicted_data[last_validation_point_index],
+                    **test_predicted_data,
+                }
+
+            test_index_dates = index[int(test_index[0])::]
             test_values = list(test_predicted_data.values())[0:len(test_index)]
+            test_values = test_values[0:len(test_index_dates)]
             sns.lineplot(
-                x=test_index, y=test_values, label=f"Test Predicted data of {target_column}",
+                x=test_index_dates, y=test_values, label=f"Test Predicted data of {target_column}",
             )
 
         if len(forecast_horizon_data):
