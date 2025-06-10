@@ -69,7 +69,9 @@ class LinearRegressionTimeSeriesResult(models.Model):
             "intercept": round(self.intercept, 4) if self.intercept else None,}
         for key in statistics_keys:
             key: str = statistics_type + "_" + key
-            statistics[key] = getattr(self, key)
+            statistics[key] = getattr(self, key, None)
+            if statistics[key]:
+                statistics[key] = round(statistics[key], 4)
 
         return statistics
 

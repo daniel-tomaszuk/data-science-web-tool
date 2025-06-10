@@ -76,22 +76,25 @@ class LinearRegressionView(DetailView):
         original_data = df[target_column][-(len(df) - linear_regression_result.lag_size):]
 
         df["Date"] = pd.to_datetime(df["Date"])
-        index = list(df.Date[-(len(df) - linear_regression_result.lag_size):])
+        index = list(df.Date[linear_regression_result.lag_size::])
 
         plt.figure(figsize=(12, 8))
         if len(original_data):
             sns.lineplot(
                 x=index, y=original_data, label=f"Original data of {target_column}"
             )
+
         val_index = []
         if len(val_predicted_data):
             val_index = list(val_predicted_data.keys())
             val_index_dates = index[int(val_index[0]):int(val_index[-1]) + 1]
             val_values = list(val_predicted_data.values())
+            val_values = val_values[0:len(val_index_dates)]
             sns.lineplot(
                 x=val_index_dates, y=val_values, label=f"Validation Predicted data of {target_column}",
             )
 
+        test_values = []
         if len(test_predicted_data):
             test_index = list(test_predicted_data.keys())
             if val_predicted_data and val_index:
@@ -113,6 +116,11 @@ class LinearRegressionView(DetailView):
         if len(forecast_horizon_data):
             step = (index[-1] - index[-2]) if len(index) > 1 else pd.Timedelta(days=1)
             forecast_index = [index[-1] + step * (i + 1) for i in range(len(forecast_horizon_data))]
+            if test_values:
+                # connect plots so transition is smooth - last test point with first forecast point
+                forecast_horizon_data = [test_values[-1]] + forecast_horizon_data
+                forecast_index = [index[-1]] + forecast_index
+
             sns.lineplot(
                 x=forecast_index,
                 y=forecast_horizon_data,
@@ -156,10 +164,11 @@ class LinearRegressionTimeSeriesCreateAPIView(CreateAPIView):
         """
         serializer = self.get_serializer(data=request.data)
         if not serializer.is_valid(raise_exception=False):
+            # TODO: display errors inside template
             request.session["validation_errors"] = serializer.errors
             return redirect(
                 "linear_regression:linear-regression-details",
-                id=request.data["object_id"],
+                pk=request.data["object_id"],
             )
 
         validated_data = serializer.validated_data
