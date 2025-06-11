@@ -26,6 +26,7 @@ class LinearRegressionTimeSeriesResult(models.Model):
     max_tree_depth = models.IntegerField(blank=True, null=True)
     forecast_horizon = models.IntegerField(blank=True, null=True)
 
+    train_values = models.JSONField(blank=True, null=True, help_text="Train data set")
     val_predictions = models.JSONField(blank=True, null=True, help_text="Validation data set predictions")
     test_predictions = models.JSONField(blank=True, null=True, help_text="Test data set predictions")
 

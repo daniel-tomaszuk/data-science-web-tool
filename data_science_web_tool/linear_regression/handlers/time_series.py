@@ -102,6 +102,7 @@ class LinearRegressionTimeSeriesHandler(LinearRegressionBase):
         df[self.column_name_lagged] = df[self.column_name].shift(self.lag_size)
         df["values_diff"] = df[self.column_name] - df[self.column_name_lagged]
         df.dropna(inplace=True)
+        df.reset_index(inplace=True)
 
         train_df, val_df, test_df = self._get_model_training_data_sets(df)
         model_metadata, forecast = self._linear_regression(train_df, val_df, test_df)
@@ -120,6 +121,7 @@ class LinearRegressionTimeSeriesHandler(LinearRegressionBase):
         val_predictions, val_statistics = self._get_model_predictions_and_statistics(val_df, model, keys_prefix="val_")
         test_predictions, test_statistics  = self._get_model_predictions_and_statistics(test_df, model, keys_prefix="test_")
         model_metadata = {
+            "train_values": train_df[self.column_name_lagged],
             "val_predictions": val_predictions,
             "val_statistics": val_statistics,
             "test_predictions": test_predictions,

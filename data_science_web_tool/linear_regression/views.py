@@ -69,8 +69,9 @@ class LinearRegressionView(DetailView):
         df = self.object.get_df()
         target_column: str = linear_regression_result.target_column
 
-        val_predicted_data = linear_regression_result.val_predictions or []
-        test_predicted_data = linear_regression_result.test_predictions or []
+        train_data = linear_regression_result.train_values or {}
+        val_predicted_data = linear_regression_result.val_predictions or {}
+        test_predicted_data = linear_regression_result.test_predictions or {}
 
         forecast_horizon_data = linear_regression_result.forecast or []
         original_data = df[target_column][-(len(df) - linear_regression_result.lag_size):]
@@ -84,33 +85,52 @@ class LinearRegressionView(DetailView):
                 x=index, y=original_data, label=f"Original data of {target_column}"
             )
 
+        train_index = []
+        if train_data:
+            train_index = list(train_data.keys())
+            train_index_dates = index[int(train_index[0]):int(train_index[-1]) + 1]
+            train_values = list(train_data.values())
+            # train_values = train_values[0:len(train_index_dates)]
+            sns.lineplot(
+                x=train_index_dates, y=train_values, label=f"Train set data of {target_column}",
+            )
+
         val_index = []
+        val_predicted_data_plot = val_predicted_data
         if len(val_predicted_data):
             val_index = list(val_predicted_data.keys())
+            if train_data and train_index:
+                # connect plots so transition is smooth - last train point with first validation point
+                last_train_point_index = train_index[-1]
+                val_index = [last_train_point_index] + val_index
+                val_predicted_data_plot = {
+                    last_train_point_index: train_data[last_train_point_index],
+                    **val_predicted_data,
+                }
+
             val_index_dates = index[int(val_index[0]):int(val_index[-1]) + 1]
-            val_values = list(val_predicted_data.values())
-            val_values = val_values[0:len(val_index_dates)]
+            val_values = list(val_predicted_data_plot.values())
             sns.lineplot(
                 x=val_index_dates, y=val_values, label=f"Validation Predicted data of {target_column}",
             )
 
         test_values = []
+        test_predicted_data_plot = test_predicted_data
         if len(test_predicted_data):
             test_index = list(test_predicted_data.keys())
             if val_predicted_data and val_index:
                 # connect plots so transition is smooth - last validation point with first test point
                 last_validation_point_index = val_index[-1]
                 test_index = [last_validation_point_index] + test_index
-                test_predicted_data = {
+                test_predicted_data_plot = {
                     last_validation_point_index: val_predicted_data[last_validation_point_index],
                     **test_predicted_data,
                 }
 
             test_index_dates = index[int(test_index[0])::]
-            test_values = list(test_predicted_data.values())[0:len(test_index)]
-            test_values = test_values[0:len(test_index_dates)]
+            test_values_plot = list(test_predicted_data_plot.values())[0:len(test_index)]
             sns.lineplot(
-                x=test_index_dates, y=test_values, label=f"Test Predicted data of {target_column}",
+                x=test_index_dates, y=test_values_plot, label=f"Test Predicted data of {target_column}",
             )
 
         if len(forecast_horizon_data):
@@ -212,6 +232,7 @@ class LinearRegressionTimeSeriesCreateAPIView(CreateAPIView):
             max_tree_depth=max_tree_depth,
             forecast_horizon=forecast_horizon,
             model_type=validated_data["model_type"],
+            train_values=dict(model_metadata["train_values"]),
             train_percentage=train_percentage,
             validation_percentage=validation_percentage,
             test_percentage=test_percentage,
