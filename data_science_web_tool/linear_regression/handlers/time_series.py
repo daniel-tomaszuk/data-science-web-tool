@@ -58,7 +58,7 @@ class LinearRegressionBase:
         return future_predictions
 
 
-    def _get_model_training_data_sets(self, df: pd.DataFrame) -> tuple[pd.DataFrame, ...]:
+    def _get_model_data_sets(self, df: pd.DataFrame) -> tuple[pd.DataFrame, ...]:
         """
         Returns training, validation and test data sets by getting data percentages selected by the user.
         """
@@ -104,7 +104,7 @@ class LinearRegressionTimeSeriesHandler(LinearRegressionBase):
         df.dropna(inplace=True)
         df.reset_index(inplace=True)
 
-        train_df, val_df, test_df = self._get_model_training_data_sets(df)
+        train_df, val_df, test_df = self._get_model_data_sets(df)
         model_metadata, forecast = self._linear_regression(train_df, val_df, test_df)
         return model_metadata, forecast
 
