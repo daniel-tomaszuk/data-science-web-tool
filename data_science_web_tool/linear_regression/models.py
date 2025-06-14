@@ -6,6 +6,9 @@ from preprocessing.models import Data
 
 
 class LinearRegressionTimeSeriesResult(models.Model):
+    REGRESSION_TREE_MODEL = "regression_tree"
+    LINEAR_REGRESSION_MODEL = "linear_regression"
+
     SUPPORTED_HANDLERS = {
         "linear_regression": LinearRegressionTimeSeriesHandler,
         "regression_tree": RegressionTreeTimeSeriesHandler,

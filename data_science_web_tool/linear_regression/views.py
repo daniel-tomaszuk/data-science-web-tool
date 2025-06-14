@@ -190,8 +190,8 @@ class LinearRegressionTimeSeriesCreateAPIView(CreateAPIView):
             test_percentage=test_percentage,
             val_predictions=dict(model_metadata["val_predictions"]),
             test_predictions=dict(model_metadata["test_predictions"]),
-            slope=model_metadata["slope"],
-            intercept=model_metadata["intercept"],
+            slope=model_metadata.get("slope"),
+            intercept=model_metadata.get("intercept"),
             **model_metadata["val_statistics"],
             **model_metadata["test_statistics"],
         )

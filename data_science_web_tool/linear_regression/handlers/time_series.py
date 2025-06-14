@@ -80,7 +80,11 @@ class LinearRegressionBase:
         return train_df, val_df, test_df
 
 
-    def _get_model_predictions_and_statistics(self, df: pd.DataFrame, model: LinearRegression | DecisionTreeRegressor, keys_prefix: str = "",) -> tuple[pd.DataFrame, dict]:
+    def _get_model_predictions_and_statistics(
+        self, df: pd.DataFrame,
+        model: LinearRegression | DecisionTreeRegressor,
+        keys_prefix: str = "",
+    ) -> tuple[pd.DataFrame, dict]:
         predictions = df[self.column_name_lagged] + model.predict(df[[self.column_name_lagged]])
         actual = df[self.column_name]
         return predictions, {
@@ -142,27 +146,32 @@ class RegressionTreeTimeSeriesHandler(LinearRegressionBase):
     """
 
     def handle(self):
-        raise Exception("Regression tree is not implemented.")
-
         df: pd.DataFrame = self.data.get_df()
         df[self.column_name_lagged] = df[self.column_name].shift(self.lag_size)
         df.dropna(inplace=True)
-        predictions, statistics, forecast = self._regression_tree(df)
-        return predictions, statistics, forecast
+        df.reset_index(inplace=True)
 
-    def _regression_tree(self, df: pd.DataFrame) -> tuple:
-        x = df[[self.column_name_lagged]]
-        y = df[self.column_name]
+        train_df, val_df, test_df = self._get_model_data_sets(df)
+        model_metadata, forecast = self._regression_tree(train_df, val_df, test_df)
+        return model_metadata, forecast
+
+    def _regression_tree(self, train_df: pd.DataFrame, val_df: pd.DataFrame, test_df: pd.DataFrame) -> tuple:
+        x = train_df[[self.column_name_lagged]]
+        y = train_df[self.column_name]
 
         model = DecisionTreeRegressor(max_depth=self.max_tree_depth)
         model.fit(x, y)
-        y_predictions = model.predict(x)
-        statistics = {
-            "r_2": r2_score(y, y_predictions),
-            "mse": mean_squared_error(y, y_predictions),
-            "mae": mean_absolute_error(y, y_predictions),
-            "rmse": root_mean_squared_error(y, y_predictions),
-            "mape": mean_absolute_percentage_error(y, y_predictions),
+
+        # Get statistics for validation and train sets
+        val_predictions, val_statistics = self._get_model_predictions_and_statistics(val_df, model, keys_prefix="val_")
+        test_predictions, test_statistics  = self._get_model_predictions_and_statistics(test_df, model, keys_prefix="test_")
+        model_metadata = {
+            "train_values": train_df[self.column_name_lagged],
+            "val_predictions": val_predictions,
+            "val_statistics": val_statistics,
+            "test_predictions": test_predictions,
+            "test_statistics": test_statistics,
         }
-        future_predictions = self._forecast_future_values(df, model)
-        return y_predictions, statistics, future_predictions
+
+        future_forecast = self._forecast_future_values(test_df, model)
+        return model_metadata, future_forecast

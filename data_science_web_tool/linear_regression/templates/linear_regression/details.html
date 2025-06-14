@@ -176,8 +176,8 @@
 </script>
 <script>
     const slider = document.getElementById("rangeSlider");
-    const initialTrain = {{ train_percentage|default:50 }};
-    const initialVal = {{ validation_percentage|default:20 }};
+    const initialTrain = {{ train_percentage|default:80 }};
+    const initialVal = {{ validation_percentage|default:90 }};
 
     noUiSlider.create(slider, {
         start: [initialTrain, initialTrain + initialVal],
