@@ -92,17 +92,8 @@ class LinearRegressionView(DetailView):
         ax.axvline(index[val_end], color='blue', linestyle='-.', label='Val/Test Split')
 
         if len(forecast_horizon_data):
-            # TODO: one point is missing?
             step = (index[-1] - index[-2]) if len(index) > 1 else pd.Timedelta(days=1)
-            forecast_index = [index[-1]] + [index[-1] + step * (i + 1) for i in range(len(forecast_horizon_data))]
-            forecast_horizon_data = [df[target_column + "_lagged"].iloc[-1]] + forecast_horizon_data
-            # last_validation_point_index = val_index[-1]
-            # test_index = [last_validation_point_index] + test_index
-            # test_predicted_data_plot = {
-            #     last_validation_point_index: val_predicted_data[last_validation_point_index],
-            #     **test_predicted_data,
-            # }
-
+            forecast_index = [index[-1] + step * i for i in range(len(forecast_horizon_data))]
             sns.lineplot(
                 x=forecast_index,
                 y=forecast_horizon_data,
