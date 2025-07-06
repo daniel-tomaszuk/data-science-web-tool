@@ -64,11 +64,11 @@
                         <label for="rangeSlider" class="form-label  g-3 mt-1 md-1">Train | Validation | Test</label>
                     </div>
                     <!-- Max Depth -->
-                    <div class="row g-3 mt-1 md-1" id="tree-row">
-                        <div class="col-md-6" id="treeParamsWrapper" style="min-height: 50px;">
-                            <div id="treeParams" style="opacity: 0; pointer-events: none; transition: opacity 0.3s;">
+                    <div class="row g-3 mt-1 md-1">
+                        <div class="col-md-6" id="maxDepthParamWrapper" style="min-height: 50px;">
+                            <div id="maxDepthParam" style="opacity: 0; pointer-events: none; transition: opacity 0.3s;">
                                 <label for="maxDepth" class="form-label">Max Depth</label>
-                                <input type="number" class="form-control" id="maxDepth" name="max_tree_depth" min="1" value="{{ max_tree_depth }}">
+                                <input type="number" class="form-control" id="maxDepth" name="max_tree_depth" min="1" value="{{ max_tree_depth|default:1 }}">
                             </div>
                         </div>
                     </div>
@@ -81,7 +81,7 @@
                 <input type="hidden" name="test_percent" id="test-input" value="">
 
                 <!-- Submit -->
-                <button type="submit" class="btn btn-primary mb-3">Analyze</button>
+                <button type="submit" class="btn btn-primary mt-3 mb-3">Analyze</button>
             </form>
         </div>
         <div class="col-md-8">
@@ -159,16 +159,14 @@
 
 <script>
     const modelTypeSelect = document.getElementById("modelType");
-    const treeParams = document.getElementById("treeParams");
-
     function toggleMaxDepthParam() {
-        const treeParams = document.getElementById("treeParams");
+        const maxDepthParam = document.getElementById("maxDepthParam");
         if (modelTypeSelect.value === "regression_tree") {
-            treeParams.style.opacity = "1";
-            treeParams.style.pointerEvents = "auto";
+            maxDepthParam.style.opacity = "1";
+            maxDepthParam.style.pointerEvents = "auto";
         } else {
-            treeParams.style.opacity = "0";
-            treeParams.style.pointerEvents = "none";
+            maxDepthParam.style.opacity = "0";
+            maxDepthParam.style.pointerEvents = "none";
         }
     }
     modelTypeSelect.addEventListener("change", toggleMaxDepthParam);
@@ -176,8 +174,8 @@
 </script>
 <script>
     const slider = document.getElementById("rangeSlider");
-    const initialTrain = {{ train_percentage|default:80 }};
-    const initialVal = {{ validation_percentage|default:90 }};
+    const initialTrain = {{ train_percentage|default:75 }};
+    const initialVal = {{ validation_percentage|default:10 }};
 
     noUiSlider.create(slider, {
         start: [initialTrain, initialTrain + initialVal],

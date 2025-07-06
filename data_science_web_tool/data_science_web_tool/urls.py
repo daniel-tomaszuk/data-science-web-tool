@@ -28,4 +28,8 @@ urlpatterns = [
         "linear_regression/",
         include("linear_regression.urls", namespace="linear_regression"),
     ),
+    path(
+        "garch/",
+        include("garch.urls", namespace="garch"),
+    ),
 ]

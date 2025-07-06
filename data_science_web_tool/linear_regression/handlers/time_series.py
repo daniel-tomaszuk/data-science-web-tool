@@ -1,4 +1,3 @@
-
 import pandas as pd
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_absolute_error
@@ -6,6 +5,7 @@ from sklearn.metrics import mean_absolute_percentage_error
 from sklearn.metrics import mean_squared_error
 from sklearn.metrics import r2_score
 from sklearn.metrics import root_mean_squared_error
+from sklearn.model_selection import TimeSeriesSplit
 from sklearn.tree import DecisionTreeRegressor
 
 from preprocessing.models import Data
@@ -57,7 +57,6 @@ class LinearRegressionBase:
 
         return future_predictions
 
-
     def _get_model_data_sets(self, df: pd.DataFrame) -> tuple[pd.DataFrame, ...]:
         """
         Returns training, validation and test data sets by getting data percentages selected by the user.
@@ -79,9 +78,9 @@ class LinearRegressionBase:
 
         return train_df, val_df, test_df
 
-
     def _get_model_predictions_and_statistics(
-        self, df: pd.DataFrame,
+        self,
+        df: pd.DataFrame,
         model: LinearRegression | DecisionTreeRegressor,
         keys_prefix: str = "",
     ) -> tuple[pd.DataFrame, dict]:
@@ -112,10 +111,31 @@ class LinearRegressionTimeSeriesHandler(LinearRegressionBase):
         model_metadata, forecast = self._linear_regression(train_df, val_df, test_df)
         return model_metadata, forecast
 
-    def _linear_regression(self, train_df: pd.DataFrame, val_df: pd.DataFrame, test_df: pd.DataFrame,) -> tuple:
+    def _linear_regression(
+        self,
+        train_df: pd.DataFrame,
+        val_df: pd.DataFrame,
+        test_df: pd.DataFrame,
+    ) -> tuple:
+        tscv = TimeSeriesSplit(n_splits=5)
+
         x = train_df[[self.column_name_lagged]]
         # y = df[self.column_name]
         y = train_df["values_diff"]
+
+        # TODO: use TimeSeriesSplit
+        # cv_mse_scores = []
+        # for i, (train_idx, val_idx) in enumerate(tscv.split(x)):
+        #     X_train_fold, X_val_fold = x[train_idx], x[val_idx]
+        #     y_train_fold, y_val_fold = y_train[train_idx], y_train[val_idx]
+        #
+        #     model = RandomForestRegressor()  # no tuning of the pararameters but it should be done this is example of validation on time series
+        #     model.fit(X_train_fold, y_train_fold)
+        #     y_pred = model.predict(X_val_fold)
+        #     mse = mean_squared_error(y_val_fold, y_pred)
+        #     cv_mse_scores.append(mse)
+        #
+        #     print(f"CV Fold {i + 1} - MSE: {mse:.6f}")
 
         # Train the model to predict values differences
         model = LinearRegression()
@@ -123,14 +143,17 @@ class LinearRegressionTimeSeriesHandler(LinearRegressionBase):
 
         # Get statistics for validation and train sets
         val_predictions, val_statistics = self._get_model_predictions_and_statistics(val_df, model, keys_prefix="val_")
-        test_predictions, test_statistics  = self._get_model_predictions_and_statistics(test_df, model, keys_prefix="test_")
+        test_predictions, test_statistics = self._get_model_predictions_and_statistics(
+            test_df,
+            model,
+            keys_prefix="test_",
+        )
         model_metadata = {
             "train_values": train_df[self.column_name_lagged],
             "val_predictions": val_predictions,
             "val_statistics": val_statistics,
             "test_predictions": test_predictions,
             "test_statistics": test_statistics,
-
             # y = m * x + b
             "slope": model.coef_[0],  # m
             "intercept": model.intercept_,  # b
@@ -164,7 +187,11 @@ class RegressionTreeTimeSeriesHandler(LinearRegressionBase):
 
         # Get statistics for validation and train sets
         val_predictions, val_statistics = self._get_model_predictions_and_statistics(val_df, model, keys_prefix="val_")
-        test_predictions, test_statistics  = self._get_model_predictions_and_statistics(test_df, model, keys_prefix="test_")
+        test_predictions, test_statistics = self._get_model_predictions_and_statistics(
+            test_df,
+            model,
+            keys_prefix="test_",
+        )
         model_metadata = {
             "train_values": train_df[self.column_name_lagged],
             "val_predictions": val_predictions,

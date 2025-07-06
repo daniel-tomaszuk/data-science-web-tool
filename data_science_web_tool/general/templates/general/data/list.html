@@ -13,12 +13,13 @@
         <thead>
             <tr>
                 <th style="width: 15%">Name</th>
-                <th style="width: 39%">Details</th>
+                <th style="width: 29%">Details</th>
                 <th style="width: 8%">Created At</th>
                 <th style="width: 8%">Updated At</th>
                 <th style="width: 10%">Admin Page</th>
                 <th style="width: 10%">Preprocessing</th>
                 <th style="width: 10%">Linear Regression</th>
+                <th style="width: 10%">Arch | Garch</th>
             </tr>
         </thead>
         <tbody>
@@ -31,6 +32,7 @@
                     <td>{{ obj.get_admin_change_url }}</td>
                     <td><a href="{% url 'preprocessing:data-detail' obj.pk %}">Preprocess</a></td>
                     <td><a href="{% url 'linear_regression:linear-regression-details' obj.pk %}">Linear Regression</a></td>
+                    <td><a href="{% url 'garch:garch-details' obj.pk %}">Arch | Garch</a></td>
                 </tr>
             {% empty %}
                 <tr>

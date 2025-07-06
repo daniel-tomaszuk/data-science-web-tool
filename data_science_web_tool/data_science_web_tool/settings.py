@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     "preprocessing",
     "integrations",
     "linear_regression",
+    "garch",
 ]
 
 MIDDLEWARE = [

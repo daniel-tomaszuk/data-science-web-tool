@@ -12,11 +12,11 @@ class YFinanceDataSourceHandler(DataSourceHandlerBase):
         "1wk",
         "1mo",
     )
-    PERIOD_CHOICES = ("1d", "5d", "1mo", "3mo", "6mo", "1y", "5y", "max")
+    PERIOD_CHOICES = ("1d", "5d", "1mo", "3mo", "6mo", "1y", "5y", "10y", "max")
 
     def load_data(self) -> list[dict]:
         """Fetches data from Yahoo Finance"""
-        ticker = self.kwargs.get("ticker")
+        ticker: str | None = self.kwargs.get("ticker")
         if not ticker:
             return []
 

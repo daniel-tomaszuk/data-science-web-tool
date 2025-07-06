@@ -1,0 +1,508 @@
+{% extends "common/base.html" %}
+{% block content %}
+
+<div class="container mt-4">
+    <h2 class="mb-3">Arch & Garch Analysis</h2>
+    <div class="mb-3">{{ object }}</div>
+    <div class="row g-4">
+        <div class="col-md-4">
+            {% if form.errors or validation_errors %}
+                <div class="alert alert-danger">
+                    <p>{{ form.errors }}</p>
+                    {% for error_key, error_msg in validation_errors.items %}
+                        <p>{{ error_key }}: {{ error_msg }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <form method="post" action="{% url 'garch:garch-create' %}">
+                {% csrf_token %}
+
+                <!-- Target Column -->
+                <div class="mb-3">
+                    <label for="column" class="form-label">Target Column</label>
+                    <select class="form-select" id="targetColumn" name="target_column" required>
+                        {% for col in columns_options %}
+                            <option value="{{ col }}"{% if col == target_column %} selected{% endif %}>{{ col }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="row mb-3 align-items-center">
+                    <!-- Model Type -->
+                    <div class="col-md-4">
+                        <label for="modelType" class="form-label">Model</label>
+                        <select class="form-select" id="modelType" name="model_type" required>
+                            {% for model_type in model_types %}
+                                <option value={{ model_type.0 }}
+                                {% if model_type.0 == used_model_type %}
+                                    selected
+                                {% endif %}>
+                                    {{ model_type.1 }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <!-- ACF Lags -->
+                    <div class="col-2 m-1 p-0">
+                        <label for="acfLags" class="form-label">ACF Lags</label>
+                        <input type="number" class="form-control" id="acfLags" name="acf_lags"
+                               {% if used_acf_lags %}
+                                   value="{{ used_acf_lags }}"
+                               {% else %}
+                                   value="36"
+                               {% endif %}
+                        min="1">
+                    </div>
+                    <!-- Tests Lags -->
+                    <div class="col-3 m-1 p-0">
+                        <label for="testsLags" class="form-label">Tests Lags</label>
+                        <input type="number" class="form-control" id="testsLags" name="tests_lags"
+                               {% if used_tests_lags %}
+                                   value="{{ used_tests_lags }}"
+                               {% else %}
+                                   value="5"
+                               {% endif %}
+                        min="1">
+                    </div>
+                    <!-- Forecast Horizon -->
+                    <div class="col-2 m-1 p-0">
+                        <label for="forecastHorizon" class="form-label">Forecast</label>
+                        <input type="number" class="form-control" id="forecastHorizon" name="forecast_horizon"
+                           {% if forecast_horizon %}
+                               value="{{ forecast_horizon }}"
+                           {% else %}
+                               value="0"
+                           {% endif %}
+                        min="0">
+                    </div>
+                </div>
+                <div class="row">
+                    <!-- P-mean equation lags -->
+                    <div class="col-6">
+                        <label for="pMeanEquationLags" class="form-label">P Mean Equation Lags</label>
+                        <input type="number" class="form-control" id="pMeanEquationLags" name="p_mean_equation_lags"
+                               {% if p_mean_equation_lags %}
+                                   value="{{ p_mean_equation_lags }}"
+                               {% else %}
+                                   value="1"
+                               {% endif %}
+                        min="0">
+                    </div>
+                    <!-- Q-variance equation lags -->
+                    <div class="col-6">
+                        <div id="qVarianceEquationLagsWrapper" style="opacity: 0; pointer-events: none; transition: opacity 0.3s;">
+                            <label for="qVarianceEquationLags" class="form-label">Q Variance Equation Lags</label>
+                            <input type="number" class="form-control" id="qVarianceEquationLags" name="q_variance_equation_lags"
+                                   {% if q_variance_equation_lags %}
+                                       value="{{ q_variance_equation_lags }}"
+                                   {% else %}
+                                       value="0"
+                                   {% endif %}
+                            min="0">
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <!-- Train / Validation / Test slider -->
+                    <div class="g-3 mt-5 md-3 pt-1 pd-5">
+                        <div id="rangeSlider"></div>
+                        <label for="rangeSlider" class="form-label  g-3 mt-1 md-1">Train | Validation | Test</label>
+                    </div>
+                </div>
+
+                <!-- Hidden Object ID -->
+                <input type="hidden" id="objectId" name="object_id" value="{{ object.id }}" >
+                <input type="hidden" name="train_percent" id="train-input" value="">
+                <input type="hidden" name="val_percent" id="val-input" value="">
+                <input type="hidden" name="test_percent" id="test-input" value="">
+
+                <!-- Submit -->
+                <button type="submit" class="btn btn-primary mt-3 mb-3">Analyze</button>
+            </form>
+        </div>
+        <div class="col card p-1 m-3 mt-5">
+            <div class="card-header"><strong>DataFrame.head(5)</strong></div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    {{ statistics.head|safe }}
+                </div>
+            </div>
+            <hr>
+            <div class="row p-1 m-3 mt-0">
+                <div class="col-2">
+                    <h5>Engle's ARCH test</h5>
+                    {% if raw_data_engle_arch_test_results %}
+                        <p class="m-1"><b>P-Value:</b> {{ raw_data_engle_arch_test_results.p_value|floatformat:6 }}</p>
+                        <p class="m-1"><b>LM Statistics:</b> {{ raw_data_engle_arch_test_results.lm_statistics|floatformat:2 }}</p>
+                    {% else %}
+                        <p>No data.</p>
+                     {% endif %}
+                </div>
+                <div class="col-5">
+                    <h5>Ljung-Box Test</h5>
+                    {% if  raw_data_ljung_box_test_results %}
+                        <table class="table table-bordered table-striped table-hover align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>#</th>
+                                    <th>Lag</th>
+                                    <th>LB Stat</th>
+                                    <th>LB P-Value</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for index_val, lb_stat, lb_pvalue in raw_data_ljung_box_test_results %}
+                                    <tr>
+                                        <td>{{ forloop.counter }}</td>
+                                        <td>{{ index_val }}</td>
+                                        <td>{{ lb_stat|floatformat:2 }}</td>
+                                        <td>{{ lb_pvalue|floatformat:6 }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    {% else %}
+                        <p>No data.</p>
+                    {% endif %}
+                </div>
+                <div class="col-5">
+                    <h5>Ljung-Box Test - Squared</h5>
+                    {% if raw_data_ljung_box_test_results_squared %}
+                        <table class="table table-bordered table-striped table-hover align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>#</th>
+                                    <th>Lag</th>
+                                    <th>LB Stat</th>
+                                    <th>LB P-Value</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for index_val, lb_stat, lb_pvalue in raw_data_ljung_box_test_results_squared %}
+                                    <tr>
+                                        <td>{{ forloop.counter }}</td>
+                                        <td>{{ index_val }}</td>
+                                        <td>{{ lb_stat|floatformat:2 }}</td>
+                                        <td>{{ lb_pvalue|floatformat:6 }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    {% else %}
+                        <p>No data.</p>
+                    {% endif %}
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-12">
+            {% if time_series_with_log_diffs_img %}
+                <!-- Original + Log Diff Plot -->
+                <div class="card mb-4">
+                    <div class="card-header"><strong>Original Time Series & Log Diffs</strong></div>
+                    <div class="card-body text-center">
+                        <img id="plotLogDiffs"
+                             src="{{ time_series_with_log_diffs_img }}"
+                             alt="Log Diff Plot"
+                             class="img-fluid rounded"
+                             style="max-height: 400px;">
+                    </div>
+                </div>
+            {% endif %}
+            {% if time_series_acf_log_diffs_img %}
+                <div class="card mb-4">
+                    <div class="card-header"><strong>Raw Data ACF of Log Diffs</strong></div>
+                    <div class="card-body text-center">
+                        <img id="plotLogDiffsAcf"
+                             src="{{ time_series_acf_log_diffs_img }}"
+                             alt="ACF Log Diff Plot"
+                             class="img-fluid rounded"
+                             style="max-height: 400px;">
+                    </div>
+                </div>
+            {% endif %}
+            {% if time_series_acf_log_diffs_img_squared %}
+                <div class="card mb-4">
+                    <div class="card-header"><strong>Raw Data ACF of Log Diffs Squared</strong></div>
+                    <div class="card-body text-center">
+                        <img id="plotLogDiffsAcfToPower"
+                             src="{{ time_series_acf_log_diffs_img_squared }}"
+                             alt="ACF Log Diff Plot Squared"
+                             class="img-fluid rounded"
+                             style="max-height: 400px;">
+                    </div>
+                </div>
+            {% endif %}
+            {% if summary %}
+                <div class="card mb-4">
+                    <div class="card-header text-center"><strong>Model {{ used_model_type|upper }}({{ p_mean_equation_lags }}, {{ q_variance_equation_lags }}) Summary</strong></div>
+                    <div class="card-body">
+                        <div class="row mt-4">
+                            <div class="col-7 m-0 p-0">
+                               <pre style="
+                                    white-space: pre-wrap;
+                                    font-size: 0.85rem;
+                                    line-height: 2;
+                                    max-width: 90%;
+                                ">
+                                    {{ summary|safe }}
+                               </pre>
+                            </div>
+                            <div class="col-5 m-0 p-0">
+                                <div>
+                                    <h5>Model {{ used_model_type|upper }}({{ p_mean_equation_lags }}, {{ q_variance_equation_lags }}) Data Engle's ARCH test</h5>
+                                    {% if model_fit_engle_arch_test_results %}
+                                        <p class="m-1">P-Value: {{ model_fit_engle_arch_test_results.p_value|floatformat:6 }}</p>
+                                        <p class="m-1">LM Statistics: {{ model_fit_engle_arch_test_results.lm_statistics|floatformat:2 }}</p>
+                                    {% else %}
+                                        <p>No data.</p>
+                                     {% endif %}
+                                </div>
+                                <hr>
+                                <div>
+                                    <h5>Model {{ used_model_type|upper }}({{ p_mean_equation_lags }}, {{ q_variance_equation_lags }}) Data Ljung-Box Test</h5>
+                                    {% if model_fit_ljung_box_test_results %}
+                                        <table class="table table-bordered table-striped table-hover align-middle">
+                                            <thead class="table-light">
+                                                <tr>
+                                                    <th>#</th>
+                                                    <th>Index</th>
+                                                    <th>LB Stat</th>
+                                                    <th>LB P-Value</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for index_val, lb_stat, lb_pvalue in model_fit_ljung_box_test_results %}
+                                                    <tr>
+                                                        <td>{{ forloop.counter }}</td>
+                                                        <td>{{ index_val }}</td>
+                                                        <td>{{ lb_stat|floatformat:2 }}</td>
+                                                        <td>{{ lb_pvalue|floatformat:6 }}</td>
+                                                    </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    {% else %}
+                                        <p>No data.</p>
+                                    {% endif %}
+                                </div>
+                                <div>
+                                    <h5>Model {{ used_model_type|upper }}({{ p_mean_equation_lags }}, {{ q_variance_equation_lags }}) Data Ljung-Box Test - Squared</h5>
+                                    {% if model_fit_ljung_box_test_results_squared %}
+                                        <table class="table table-bordered table-striped table-hover align-middle">
+                                            <thead class="table-light">
+                                                <tr>
+                                                    <th>#</th>
+                                                    <th>Index</th>
+                                                    <th>LB Stat</th>
+                                                    <th>LB P-Value</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for index_val, lb_stat, lb_pvalue in model_fit_ljung_box_test_results_squared %}
+                                                    <tr>
+                                                        <td>{{ forloop.counter }}</td>
+                                                        <td>{{ index_val }}</td>
+                                                        <td>{{ lb_stat|floatformat:2 }}</td>
+                                                        <td>{{ lb_pvalue|floatformat:6 }}</td>
+                                                    </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    {% else %}
+                                        <p>No data.</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        {% if time_series_acf_log_diffs_img_model_result %}
+                <div class="card mb-4">
+                    <div class="card-header"><strong>Model {{ used_model_type|upper }}({{ p_mean_equation_lags }}, {{ q_variance_equation_lags }}) Result ACF of Log Diffs</strong></div>
+                    <div class="card-body text-center">
+                        <img id="plotLogDiffsAcf"
+                             src="{{ time_series_acf_log_diffs_img_model_result }}"
+                             alt="ACF Log Diff Plot"
+                             class="img-fluid rounded"
+                             style="max-height: 400px;">
+                    </div>
+                </div>
+            {% endif %}
+            {% if time_series_acf_log_diffs_img_squared_model_result %}
+                <div class="card mb-4">
+                    <div class="card-header"><strong>Model {{ used_model_type|upper }}({{ p_mean_equation_lags }}, {{ q_variance_equation_lags }}) Result ACF of Log Diffs Squared</strong></div>
+                    <div class="card-body text-center">
+                        <img id="plotLogDiffsAcfToPower"
+                             src="{{ time_series_acf_log_diffs_img_squared_model_result }}"
+                             alt="ACF Log Diff Plot Squared"
+                             class="img-fluid rounded"
+                             style="max-height: 400px;">
+                    </div>
+                </div>
+            {% endif %}
+            {% if forecast_plot %}
+                <div class="card mb-4">
+                    <div class="card-header"><strong>Model {{ used_model_type|upper }}({{ p_mean_equation_lags }}, {{ q_variance_equation_lags }}) Forecast Plot</strong></div>
+                    <div class="card-body text-center">
+                        <img id="plotLogDiffsAcfToPower"
+                             src="{{ forecast_plot }}"
+                             alt="ACF Log Diff Plot Squared"
+                             class="img-fluid rounded"
+                             style="max-height: 600px;">
+                    </div>
+                </div>
+            {% endif %}
+            {% if forecast_plot_zoomed %}
+                <div class="card mb-4">
+                    <div class="card-header"><strong>Model {{ used_model_type|upper }}({{ p_mean_equation_lags }}, {{ q_variance_equation_lags }}) Forecast Plot</strong></div>
+                    <div class="card-body text-center">
+                        <img id="plotLogDiffsAcfToPower"
+                             src="{{ forecast_plot_zoomed }}"
+                             alt="ACF Log Diff Plot Squared"
+                             class="img-fluid rounded"
+                             style="max-height: 600px;">
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if garch_statistics %}
+    <div class="card mb-4">
+        <div class="card-header text-center">
+            <strong>ARCH / GARCH Validation and Test Statistics</strong>
+        </div>
+        <div class="card-body table-responsive">
+            <table class="table table-bordered table-striped table-hover align-middle text-center">
+                <thead class="table-light">
+                    <tr>
+                        <th>Metric</th>
+                        <th>Validation Set</th>
+                        <th>Test Set</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Volatility MSE</td>
+                        <td>{{ garch_statistics.val_vol_mse|floatformat:6 }}</td>
+                        <td>{{ garch_statistics.test_vol_mse|floatformat:6 }}</td>
+                    </tr>
+                    <tr>
+                        <td>Volatility MAE</td>
+                        <td>{{ garch_statistics.val_vol_mae|floatformat:6 }}</td>
+                        <td>{{ garch_statistics.test_vol_mae|floatformat:6 }}</td>
+                    </tr>
+                    <tr>
+                        <td>Volatility RMSE</td>
+                        <td>{{ garch_statistics.val_vol_rmse|floatformat:6 }}</td>
+                        <td>{{ garch_statistics.test_vol_rmse|floatformat:6 }}</td>
+                    </tr>
+                    <tr>
+                        <td>Volatility QLIKE</td>
+                        <td>{{ garch_statistics.val_vol_qlike|floatformat:6 }}</td>
+                        <td>{{ garch_statistics.test_vol_qlike|floatformat:6 }}</td>
+                    </tr>
+                    <tr class="table-secondary">
+                        <td colspan="3"><strong>Mean (Returns) Metrics</strong></td>
+                    </tr>
+                    <tr>
+                        <td>R²</td>
+                        <td>{{ garch_statistics.val_mean_r2|floatformat:6 }}</td>
+                        <td>{{ garch_statistics.test_mean_r2|floatformat:6 }}</td>
+                    </tr>
+                    <tr>
+                        <td>Mean MSE</td>
+                        <td>{{ garch_statistics.val_mean_mse|floatformat:6 }}</td>
+                        <td>{{ garch_statistics.test_mean_mse|floatformat:6 }}</td>
+                    </tr>
+                    <tr>
+                        <td>Mean MAE</td>
+                        <td>{{ garch_statistics.val_mean_mae|floatformat:6 }}</td>
+                        <td>{{ garch_statistics.test_mean_mae|floatformat:6 }}</td>
+                    </tr>
+                    <tr>
+                        <td>Mean RMSE</td>
+                        <td>{{ garch_statistics.val_mean_rmse|floatformat:6 }}</td>
+                        <td>{{ garch_statistics.test_mean_rmse|floatformat:6 }}</td>
+                    </tr>
+                    <tr>
+                        <td>Mean MAPE</td>
+                        <td>
+                            {{ garch_statistics.val_mean_mape|floatformat:2 }}%
+                        </td>
+                        <td>
+                            {{ garch_statistics.test_mean_mape|floatformat:2 }}%
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if not time_series_with_log_diffs_img %}
+        <p class="mt-5 mb-5 alert alert-info">No results found.</p>
+    {% endif %}
+
+    <!-- Back Button -->
+    <div class="mt-4">
+        <a href="{% url 'general:data-list' %}" class="btn btn-secondary">Back to List</a>
+    </div>
+</div>
+
+
+<script>
+    const modelTypeSelect = document.getElementById("modelType");
+    function toggleQVarianceEquationLags() {
+        const qVarianceEquationLagsWrapper = document.getElementById("qVarianceEquationLagsWrapper");
+        if (modelTypeSelect.value === "garch") {
+            qVarianceEquationLagsWrapper.style.opacity = "1";
+            qVarianceEquationLagsWrapper.style.pointerEvents = "auto";
+        } else {
+            qVarianceEquationLagsWrapper.style.opacity = "0";
+            qVarianceEquationLagsWrapper.style.pointerEvents = "none";
+        }
+    }
+    modelTypeSelect.addEventListener("change", toggleQVarianceEquationLags);
+    document.addEventListener("DOMContentLoaded", toggleQVarianceEquationLags);
+</script>
+<script>
+    const slider = document.getElementById("rangeSlider");
+    const initialTrain = {{ train_percentage|default:75 }};
+    const initialVal = {{ validation_percentage|default:10 }};
+
+    noUiSlider.create(slider, {
+        start: [initialTrain, initialTrain + initialVal],
+        connect: [true, true, true],
+        range: { min: 1, max: 99 },
+        step: 1,
+        tooltips: [true, true],
+        format: {
+          to: value => Math.round(value),
+          from: value => Number(value)
+        },
+    });
+
+    const trainInput = document.getElementById("train-input");
+    const valInput = document.getElementById("val-input");
+    const testInput = document.getElementById("test-input");
+
+    slider.noUiSlider.on("update", function (values) {
+        const train = parseInt(values[0]);
+        const val = parseInt(values[1]) - train;
+        const test = 100 - parseInt(values[1]);
+
+        trainInput.value = train;
+        valInput.value = val;
+        testInput.value = test;
+    });
+
+</script>
+
+
+{% endblock %}

@@ -198,3 +198,4 @@ class LinearRegressionTimeSeriesCreateAPIView(CreateAPIView):
         return redirect(
             "linear_regression:linear-regression-details", pk=data_instance.id
         )
+
