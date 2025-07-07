@@ -47,49 +47,56 @@
             <div class="card h-100">
                 <div class="card-header">Update Column Data Types</div>
                 <div class="card-body">
-                    <form method="POST" action="{% url 'preprocessing:change-column-type' object.id %}">
-                        {% csrf_token %}
-                        <div class="table-responsive">
-                            <table class="table table-bordered">
-                                <thead class="table-light">
-                                    <tr>
-                                        <th>Column Name</th>
-                                        <th>Current Type</th>
-                                        <th>New Type</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for col_name, col_type in object.data_columns.items %}
+                    <div class="row">
+                        <form method="POST" action="{% url 'preprocessing:change-column-type' object.id %}">
+                            {% csrf_token %}
+                            <div class="table-responsive col-12">
+                                <table class="table table-bordered">
+                                    <thead class="table-light">
                                         <tr>
-                                            <td>{{ col_name }}</td>
-                                            <td>{{ col_type|title }}</td>
-                                            <td>
-                                                <select class="form-select" name="data_type_{{ col_name }}">
-                                                    {% for data_type in object.SUPPORTED_COLUMN_TYPES %}
-                                                        <option value="{{ data_type }}" {% if col_type == data_type %}selected{% endif %}>
-                                                            {{ data_type|title }}
-                                                        </option>
-                                                    {% endfor %}
-                                                </select>
-                                            </td>
+                                            <th>Column Name</th>
+                                            <th>Current Type</th>
+                                            <th>New Type</th>
                                         </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
-                        <div class="align-items-center gap-3 mt-3">
-                            <button type="submit" class="btn btn-primary">Save</button>
-                            <!-- Messages -->
-                            {% if messages %}
-                                {% for message in messages %}
-                                    <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show mb-0" role="alert">
-                                        {{ message|capfirst }}
-                                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                                    </div>
-                                {% endfor %}
-                            {% endif %}
-                        </div>
-                    </form>
+                                    </thead>
+                                    <tbody>
+                                        {% for col_name, col_type in object.data_columns.items %}
+                                            <tr>
+                                                <td>{{ col_name }}</td>
+                                                <td>{{ col_type|title }}</td>
+                                                <td>
+                                                    <select class="form-select" name="data_type_{{ col_name }}">
+                                                        {% for data_type in object.SUPPORTED_COLUMN_TYPES %}
+                                                            <option value="{{ data_type }}" {% if col_type == data_type %}selected{% endif %}>
+                                                                {{ data_type|title }}
+                                                            </option>
+                                                        {% endfor %}
+                                                    </select>
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="row mb-2 pb-1">
+                                <div class="align-items-center col-2 gap-3 mt-3">
+                                    <button type="submit" class="btn btn-primary">Save</button>
+                                </div>
+                                <div class="col-10">
+                                    <!-- Messages -->
+                                    {% if messages %}
+                                        {% for message in messages %}
+                                            <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show m-0" role="alert">
+                                                {{ message|capfirst }}
+                                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                            </div>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+
                 </div>
             </div>
         </div>
@@ -97,8 +104,7 @@
     <br>
     <div class="row">
         <div class="col-12 md-2">
-            <h3>DODAC TESTY STATYCZNOSCI</h3>
-
+            <h3>Time series stationary tests</h3>
         </div>
     </div>
 
