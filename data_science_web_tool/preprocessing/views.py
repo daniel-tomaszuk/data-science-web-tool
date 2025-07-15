@@ -42,27 +42,41 @@ class DataDetailView(DetailView):
         if not last_adf_test:
             return context
 
-        results = last_adf_test.results
-        context["last_adf_test_results"] = results if last_adf_test else None
+        adf_results = last_adf_test.results
+        context["last_adf_test_results"] = adf_results if last_adf_test else None
         context["last_adf_test_target_column"] = last_adf_test.target_column
-        context["last_adf_test_results_indices"] = list(list(results.values())[0].keys())
+        context["last_adf_test_results_indices"] = list(list(adf_results.values())[0].keys())
         context["last_adf_test_results_max_augmentation_count"] = last_adf_test.max_augmentation_count
         context["last_adf_test_datetime"] = last_adf_test.created_at if last_adf_test else None
         context["last_adf_test_results_differentiate_count"] = last_adf_test.differentiate_count
         context["last_adf_test_results_test_version"] = last_adf_test.test_version
         context["pp_test_results"] = last_adf_test.pp_test_results
-        context["kpss_test_results"] = last_adf_test.kpss_test_results
-
-        highlight_indices = []
-        for idx, value in results["ADF Test statistic"].items():
-            pval_5 = results["Test BG (5 lags) (p-value)"][idx]
-            pval_10 = results["Test BG (10 lags) (p-value)"][idx]
-            pval_15 = results["Test BG (15 lags) (p-value)"][idx]
-            if pval_5 > 0.05 and pval_10 > 0.05 and pval_15 > 0.05:
-                highlight_indices.append(idx)
-
-        context["last_adf_test_results_highlight_indices"] = highlight_indices
+        context["kpss_test_results"] = {
+            "p_value": round(last_adf_test.kpss_test_results.get("p_value", 0), 6),
+            "test_statistic": round(last_adf_test.kpss_test_results.get("test_statistic", 0), 6),
+        }
+        context["last_adf_test_results_highlight_indices"] = self.__adf_get_first_correct_row_index(adf_results)
         return context
+
+    @staticmethod
+    def __adf_get_first_correct_row_index(adf_results: dict) -> list[int]:
+        min_p_value = 0.05
+        highlight_indices = []
+
+        for idx, value in adf_results["ADF Test statistic"].items():
+            pval_5 = adf_results["Test BG (5 lags) (p-value)"][idx]
+            pval_10 = adf_results["Test BG (10 lags) (p-value)"][idx]
+            pval_15 = adf_results["Test BG (15 lags) (p-value)"][idx]
+
+            critical_value_1 = adf_results["Critical Value ADF (1%)"][idx]
+            critical_value_5 = adf_results["Critical Value ADF (5%)"][idx]
+            critical_value_10 = adf_results["Critical Value ADF (10%)"][idx]
+
+            if pval_5 > min_p_value and pval_10 > min_p_value and pval_15 > min_p_value:
+                if value < critical_value_1 and value < critical_value_5 and value < critical_value_10:
+                    highlight_indices.append(idx)
+                    return highlight_indices
+        return []
 
 
 class CreateStationaryTestResultsAPIView(CreateAPIView):
