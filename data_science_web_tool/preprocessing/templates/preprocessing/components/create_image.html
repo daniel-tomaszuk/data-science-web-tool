@@ -20,7 +20,7 @@
 
                 <!-- Select Column X -->
                 <div class="col-md-3">
-                    <label for="plotColumn" class="form-label">Axis X</label>
+                    <label for="plotColumnX" class="form-label">Axis X</label>
                     <select class="form-select" id="plotColumnX" name="axis_x_name" required>
                         <option value="-">-</option>
                         {% for column_name in object.data_columns.keys%}
@@ -33,7 +33,7 @@
 
                 <!-- Select Column Y -->
                 <div class="col-md-3">
-                    <label for="plotColumn" class="form-label">Axis Y</label>
+                    <label for="plotColumnY" class="form-label">Axis Y</label>
                     <select class="form-select" id="plotColumnY" name="axis_y_name" required>
                         <option value="-">-</option>
                         {% for column_name in object.data_columns.keys%}
@@ -86,11 +86,17 @@
 
     <!-- Display Generated Plot -->
     {% if preprocessing_plot_image %}
-        <div class="mt-4">
-            <img id="plotResult" src="{{ preprocessing_plot_image  }}" alt="Plot of {{ preprocessing_plot_image }}" class="img-fluid rounded">
+        <div class="row">
+            <div class="mt-4 col-12">
+                <img id="plotResult" src="{{ preprocessing_plot_image  }}" alt="Plot of {{ preprocessing_plot_image }}" class="img-fluid rounded">
+            </div>
         </div>
     {% else %}
-        <p class="text-muted mt-3">No image available.</p>
+        <div class="row">
+            <div class="col-12 mt-3 ml-5 text-muted">
+                <p>No image available.</p>
+            </div>
+        </div>
     {% endif %}
 </div>
 

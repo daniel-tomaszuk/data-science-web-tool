@@ -9,9 +9,14 @@ from preprocessing.data_sources_handlers.csv_source_handler import CsvDataSource
 from preprocessing.data_sources_handlers.yfinance_source_handler import YFinanceDataSourceHandler
 from preprocessing.plot_handlers.histogram import HistogramPlotHandler
 from preprocessing.plot_handlers.line_plot import LinePlotHandler
+from preprocessing.statistics_tests_handlers.adf_test import ADFTestHandler
 
 
 class Data(models.Model):
+    NUMERICAL_TYPES = (
+        "int64",
+        "float64",
+    )
     SUPPORTED_COLUMN_TYPES = (
         "int64",
         "float64",
@@ -29,9 +34,7 @@ class Data(models.Model):
         verbose_name_plural = "data"
 
     name = models.CharField(max_length=256, help_text="Name of the data source.")
-    description = models.TextField(
-        null=True, blank=True, help_text="Additional information about the data source."
-    )
+    description = models.TextField(null=True, blank=True, help_text="Additional information about the data source.")
     data = models.JSONField(null=True, blank=True)
     data_index = models.JSONField(
         null=True,
@@ -51,9 +54,7 @@ class Data(models.Model):
     def save(self, *args, **kwargs):
         if not self.data_columns:
             df: pd.DataFrame = self.get_df()
-            self.data_columns = {
-                str(key): str(value) for key, value in df.dtypes.to_dict().items()
-            }
+            self.data_columns = {str(key): str(value) for key, value in df.dtypes.to_dict().items()}
         super().save(*args, **kwargs)
 
     def get_admin_change_url(self) -> str:
@@ -136,3 +137,24 @@ class DataUpload(models.Model):
 
     def __str__(self):
         return f"Data {self.file} uploaded at {self.created_at.isoformat()}"
+
+
+class DataTestResult(models.Model):
+    SUPPORTED_TEST_HANDLERS = {
+        "adf": ADFTestHandler,
+    }
+
+    data = models.ForeignKey(Data, on_delete=models.CASCADE)
+    results = models.JSONField(null=True, blank=True)
+
+    test_type = models.CharField(null=True, blank=True)
+    target_column = models.CharField(null=True, blank=True)
+    max_augmentation_count = models.IntegerField(null=True, blank=True)
+    test_version = models.CharField(null=True, blank=True)
+    differentiate_count = models.IntegerField(null=True, blank=True)
+
+    pp_test_results = models.JSONField(null=True, blank=True)
+    kpss_test_results = models.JSONField(null=True, blank=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)

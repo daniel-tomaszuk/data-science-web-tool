@@ -1,3 +1,4 @@
+arch==7.2.0
 asgiref==3.8.1
 beautifulsoup4==4.13.4
 black==25.1.0
@@ -28,6 +29,7 @@ numpy==2.2.3
 packaging==24.2
 pandas==2.2.3
 pathspec==0.12.1
+patsy==1.0.1
 peewee==3.17.9
 pillow==11.1.0
 platformdirs==4.3.6
@@ -46,6 +48,7 @@ seaborn==0.13.2
 six==1.17.0
 soupsieve==2.6
 sqlparse==0.5.3
+statsmodels==0.14.4
 threadpoolctl==3.6.0
 typing_extensions==4.13.2
 tzdata==2025.1

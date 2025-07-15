@@ -17,4 +17,9 @@ urlpatterns = [
         views.ImageCreateAPIView.as_view(),
         name="create-plot",
     ),
+    path(
+        "<int:pk>/stationary-tests/",
+        views.CreateStationaryTestResultsAPIView.as_view(),
+        name="create-stationary-test-results",
+    ),
 ]

@@ -1,4 +1,10 @@
 {% extends "common/base.html" %}
+{% load static %}
+{% load dict_extras %}
+
+{% block head %}
+    <link rel="stylesheet" href="{% static 'preprocessing/styles.css' %}">
+{% endblock %}
 
 {% block content %}
 <div class="container mt-4">
@@ -102,12 +108,141 @@
         </div>
     </div>
     <br>
+
+
     <div class="row">
         <div class="col-12 md-2">
-            <h3>Time series stationary tests</h3>
+            <h3>Augmented Dickey-Fuller (ADF) Test</h3>
+            <div class="card mb-4">
+                <div class="card-header"><strong>ADF Test Parameters</strong></div>
+                <form method="post" action="{% url "preprocessing:create-stationary-test-results" object.id %}" class="p-3 mb-4">
+
+                    {% csrf_token %}
+                    <div class="row">
+                        <!-- Target Column Selector -->
+                        <div class="col-3 mb-3">
+                            <label for="targetColumn" class="form-label">Target Column</label>
+                            <select class="form-select" id="targetColumn" name="target_column" required>
+                                {% for col in numerical_columns %}
+                                    <option value="{{ col }}" {% if col == last_adf_test_target_column %}selected{% endif %}>{{ col }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- Max Augmentation Count -->
+                        <div class="col-2 mb-3">
+                            <label for="maxAugmentation" class="form-label">Max Augmentation Count</label>
+                            <input type="number" class="form-control" id="maxAugmentation" name="max_augmentation_count"
+                                   value="{{ last_adf_test_results_max_augmentation_count|default:10 }}" min="1" max="100" required>
+                        </div>
+
+                        <!-- Differentiate Count -->
+                        <div class="col-2 mb-3">
+                            <label for="differentiateCount" class="form-label">Differentiate Count</label>
+                            <input type="number" class="form-control" id="differentiateCount" name="differentiate_count"
+                                   value="{{ last_adf_test_results_differentiate_count|default:1 }}" min="1" max="10" required>
+                        </div>
+
+
+
+
+
+                    </div>
+
+
+
+
+                    <div class="row">
+
+                        <!-- Test Version Radio Buttons -->
+                        <div class="col-12 mb-3">
+                            <label class="form-label">Test Version</label>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="test_version" id="testVersionN" value="n"
+                                       {% if last_adf_test_results_test_version == 'n' or not last_adf_test_results_test_version %}checked{% endif %}>
+                                <label class="form-check-label" for="testVersionN">n - No constant, no deterministic trend</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="test_version" id="testVersionC" value="c"
+                                       {% if last_adf_test_results_test_version == 'c' %}checked{% endif %}>
+                                <label class="form-check-label" for="testVersionC">c - Adds constant, no deterministic trend</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="test_version" id="testVersionT" value="t"
+                                       {% if last_adf_test_results_test_version == 't' %}checked{% endif %}>
+                                <label class="form-check-label" for="testVersionT">t - Adds deterministic trend and constant</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Hidden test type field -->
+                    <input type="hidden" name="test_type" value="adf">
+
+                    <!-- Submit Button -->
+                    <div class="row">
+                        <button type="submit" class="col-12 btn btn-primary">Run ADF Test</button>
+                    </div>
+                </form>
+
+            {% if last_adf_test_results %}
+                <div class="row">
+                    <div class="col-12">
+                        <table class="table table-bordered table-striped table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Index</th>
+                                    <th>ADF Test statistic</th>
+                                    <th>Augmentation Count</th>
+                                    <th>Critical Value ADF (1%)</th>
+                                    <th>Critical Value ADF (5%)</th>
+                                    <th>Critical Value ADF (10%)</th>
+                                    <th>Breusch–Godfrey test (5 lags) p-value</th>
+                                    <th>Breusch–Godfrey test (10 lags) p-value</th>
+                                    <th>Breusch–Godfrey test (15 lags) p-value</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for i in last_adf_test_results_indices %}
+                                    <tr>
+                                        <td>{{ i }}</td>
+                                        <td>{{ last_adf_test_results|get_item:"ADF Test statistic"|get_item:i|floatformat:4 }}</td>
+                                        <td>{{ last_adf_test_results|get_item:"Augmentation Count"|get_item:i }}</td>
+                                        <td>{{ last_adf_test_results|get_item:"Critical Value ADF (1%)"|get_item:i }}</td>
+                                        <td>{{ last_adf_test_results|get_item:"Critical Value ADF (5%)"|get_item:i }}</td>
+                                        <td>{{ last_adf_test_results|get_item:"Critical Value ADF (10%)"|get_item:i }}</td>
+                                        <td class="{% if i in last_adf_test_results_highlight_indices %}highlight-cell{% endif %}">{{ last_adf_test_results|get_item:"Test BG (5 lags) (p-value)"|get_item:i|floatformat:4 }}</td>
+                                        <td class="{% if i in last_adf_test_results_highlight_indices %}highlight-cell{% endif %}">{{ last_adf_test_results|get_item:"Test BG (10 lags) (p-value)"|get_item:i|floatformat:4 }}</td>
+                                        <td class="{% if i in last_adf_test_results_highlight_indices %}highlight-cell{% endif %}">{{ last_adf_test_results|get_item:"Test BG (15 lags) (p-value)"|get_item:i|floatformat:4 }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            {% endif %}
         </div>
     </div>
+    <div class="row">
+        <div class="col-6 mb-4">
+            <h3>Phillips-Perron (PP) Test</h3>
+            {% if pp_test_results %}
+                <pre>{{ pp_test_results.summary }}</pre>
+            {% else %}
+                <div>No data.</div>
+            {% endif %}
 
+        </div>
+        <div class="col-6 mb-4">
+            <h3>Kwiatkowski–Phillips–Schmidt–Shin (KPSS) Test</h3>
+            {% if kpss_test_results %}
+                <div>Test statistic: {{ kpss_test_results.test_statistic }}</div>
+                <div>P-Value: {{ kpss_test_results.p_value }}</div>
+            {% else %}
+                <div>No data.</div>
+            {% endif %}
+
+        </div>
+    </div>
     {% include "preprocessing/components/create_image.html" %}
 
     <!-- Back Button -->
