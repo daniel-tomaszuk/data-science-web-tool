@@ -139,10 +139,18 @@ class GarchResultView(DetailView):
 
         # Plot the original values on the left axis
         sns.lineplot(
-            x=index, y=list(df[target_column]), ax=ax1, label=f"Original values for {target_column}", color="blue"
+            x=index,
+            y=list(df[target_column]),
+            ax=ax1,
+            label=f"Original values for {target_column}",
+            color="blue",
         )
         ax1.set_ylabel(f"Original Values {target_column}", color="blue")
         ax1.tick_params(axis="y", labelcolor="blue")
+        ax1.legend(
+            loc="upper left",
+            bbox_to_anchor=(0, 1.12),
+        )
 
         # Create a second y-axis for the log diffs
         ax2 = ax1.twinx()
@@ -157,6 +165,10 @@ class GarchResultView(DetailView):
         )
         ax2.set_ylabel(f"Log Diff (Returns) {target_column}", color="red")
         ax2.tick_params(axis="y", labelcolor="red")
+        ax2.legend(
+            loc="upper right",
+            bbox_to_anchor=(1, 1.12),
+        )
 
         # Format x-axis
         ax1.set_xlabel("Date")
@@ -202,6 +214,21 @@ class GarchResultView(DetailView):
         plt.axhline(y=-1.96 / np.sqrt(len(df[target_column])), linestyle="--", color="gray")
         plt.axhline(y=1.96 / np.sqrt(len(df[target_column])), linestyle="--", color="gray")
         plt.ylim(-0.4, 0.4)
+
+        plt.xlabel("Lag (periods)")
+        plt.ylabel("Autocorrelation")
+        if squared:
+            plt.ylabel("Autocorrelation (squared series)")
+
+        title = "ACF for Log Diffs"
+        if squared:
+            title += " Squared"
+
+        title += ", 95% confidence interval"
+        plt.title(title)
+
+        plt.grid(True)
+        plt.tight_layout()
 
         title = "ACF for Log Diffs"
         if squared:
@@ -249,7 +276,6 @@ class GarchResultView(DetailView):
         forecast_ci_upper = forecast_df["forecast_means"] + 2 * forecast_df["forecast_std"]
         forecast_ci_lower = forecast_df["forecast_means"] - 2 * forecast_df["forecast_std"]
 
-        # --- Wykres ---
         plt.figure(figsize=(12, 4))
         plt.plot(
             index,
@@ -286,11 +312,9 @@ class GarchResultView(DetailView):
         plt.close()
         main_plot: str = f"data:image/png;base64,{base64_img}"
 
-        # Indeksy do przycięcia
         zoom_start_idx = -len(forecast_df) - int(0.25 * result.forecast_horizon)
         zoom_returns = df.iloc[zoom_start_idx:]
 
-        # Wykres z zoomem
         plt.figure(figsize=(12, 4))
         plt.plot(
             index[zoom_start_idx:],
@@ -298,17 +322,29 @@ class GarchResultView(DetailView):
             label="Actual returns",
             color="black",
         )
-        plt.plot(forecast_index, forecast_df.forecast_means, label="Forecast GARCH(1,1)", color="blue", linestyle="--")
-
+        plt.plot(
+            forecast_index,
+            forecast_df.forecast_means,
+            label="Forecast GARCH(1,1)",
+            color="blue",
+            linestyle="--",
+        )
         plt.fill_between(
-            forecast_index, forecast_ci_lower, forecast_ci_upper, color="blue", alpha=0.2, label="95% CI forecast"
+            forecast_index,
+            forecast_ci_lower,
+            forecast_ci_upper,
+            color="blue",
+            alpha=0.2,
+            label="95% CI forecast",
         )
 
         plt.axvline(x=forecast_index[0], color="red", linestyle=":", label="Forecast start")
-        plt.title("Forecast GARCH(1,1) Zoom")
+        plt.title(
+            f"Forecast {result.model_type.upper()}({result.p_mean_equation_lags},{result.q_variance_equation_lags}) Zoom"
+        )
         plt.xlabel("Date")
         plt.ylabel("Returns")
-        plt.legend()
+        plt.legend(loc="upper left")
         plt.grid(True)
         plt.tight_layout()
 
