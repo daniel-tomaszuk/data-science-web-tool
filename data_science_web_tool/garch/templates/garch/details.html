@@ -119,28 +119,60 @@
                 <!-- Submit -->
                 <button type="submit" class="btn btn-primary mt-3 mb-3">Analyze</button>
             </form>
+            <div class="row small" style="text-align: justify;">
+                <p class="m-0 mt-1"><strong>Target Column:</strong>
+                    Pick the data column you want to model.
+                </p>
+                <p class="m-0 mt-1"><strong>Model:</strong>
+                    ARCH(p) models volatility with only past squared shocks.
+                    GARCH(p, q) adds past conditional variances - more flexible, smoother forecasts.
+                    GARCH(1,1) is a good default for most financial series.
+                </p>
+                <p class="m-0 mt-1"><strong>ACF Lags:</strong>
+                    Number of lags for the autocorrelation function (ACF) plot.
+                    Use enough lags to spot persistent autocorrelation in squared residuals, but beware over-noisy tails.
+                </p>
+                <p class="m-0 mt-1"><strong>Tests Lags:</strong> Number of lags for Ljung–Box test.</p>
+                <p class="m-0 mt-1"><strong>Forecast Period:</strong>
+                    How many steps ahead to forecast. Align this with your decision horizon (e.g. next 30 trading days).
+                    Same time unit as in chosen target column applies.
+                </p>
+                <p class="m-0 mt-1"><strong>P (Mean Equation) Lags:</strong>
+                    Order p of the AR(p) component in the conditional mean.
+                    Often set to 0 or 1 for financial returns. Only include additional lags if you see significant autocorrelation.
+                </p>
+                <p class="m-0 mt-1"><strong>Q (Variance Equation) Lags:</strong>
+                    Order q of past conditional variances in GARCH. GARCH(1,1) (i.e. q=1) captures most volatility persistence in markets.
+                </p>
+            </div>
         </div>
-        <div class="col card p-1 m-3 mt-5">
-            <div class="card-header"><strong>DataFrame.head(5)</strong></div>
-            <div class="card-body">
-                <div class="table-responsive">
-                    {{ statistics.head|safe }}
+        <div class="col p-1 m-3 mt-5">
+            <div class="card">
+                <div class="card-header"><strong>DataFrame.head(5)</strong></div>
+                <div class="card-body mb-1 pb-1">
+                    <div class="table-responsive">
+                        {{ statistics.head|safe }}
+                    </div>
                 </div>
             </div>
-            <hr>
-            <div class="row p-1 m-3 mt-0">
+            <div class="row p-1 mt-5">
                 <div class="col-2">
                     <h5>Engle's ARCH test</h5>
                     {% if raw_data_engle_arch_test_results %}
                         <p class="m-1"><b>P-Value:</b> {{ raw_data_engle_arch_test_results.p_value|floatformat:6 }}</p>
                         <p class="m-1"><b>LM Statistics:</b> {{ raw_data_engle_arch_test_results.lm_statistics|floatformat:2 }}</p>
+                        {% if model_fit_engle_arch_test_results_success %}
+                            <p class="small alert alert-success">No significant ARCH effects detected.</p>
+                        {% else %}
+                            <p class="small alert alert-danger">Significant ARCH effects detected.</p>
+                        {% endif %}
                     {% else %}
                         <p>No data.</p>
                      {% endif %}
                 </div>
                 <div class="col-5">
                     <h5>Ljung-Box Test</h5>
-                    {% if  raw_data_ljung_box_test_results %}
+                    {% if raw_data_ljung_box_test_results %}
                         <table class="table table-bordered table-striped table-hover align-middle">
                             <thead class="table-light">
                                 <tr>
@@ -161,6 +193,11 @@
                                 {% endfor %}
                             </tbody>
                         </table>
+                        {% if raw_data_ljung_box_test_results_success %}
+                            <p class="small alert alert-success">All Ljung–Box p-values exceed 0.05, indicating no ARCH effects within selected target column raw data.</p>
+                        {% else %}
+                            <p class="small alert alert-danger">One or more Ljung–Box p-values are ≤ 0.05, indicating present ARCH effects withing selected target column raw data.</p>
+                        {% endif %}
                     {% else %}
                         <p>No data.</p>
                     {% endif %}
@@ -188,6 +225,11 @@
                                 {% endfor %}
                             </tbody>
                         </table>
+                        {% if raw_data_ljung_box_test_results_squared_success %}
+                            <p class="small alert alert-success">All Ljung–Box p-values exceed 0.05, indicating no ARCH effects within selected target column raw data.</p>
+                        {% else %}
+                            <p class="small alert alert-danger">One or more Ljung–Box p-values are ≤ 0.05, indicating present ARCH effects withing selected target column raw data.</p>
+                        {% endif %}
                     {% else %}
                         <p>No data.</p>
                     {% endif %}
