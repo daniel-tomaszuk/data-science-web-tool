@@ -78,33 +78,8 @@ class GarchResultView(DetailView):
             )
 
             context["summary"] = garch_result.summary
-            context["raw_data_engle_arch_test_results"] = self._get_rounded_engle_test_results(
-                garch_result.raw_data_engle_arch_test_results
-            )
-            context["model_fit_engle_arch_test_results"] = self._get_rounded_engle_test_results(
-                garch_result.model_fit_engle_arch_test_results
-            )
-            context["model_fit_engle_arch_test_results_success"] = (
-                garch_result.model_fit_engle_arch_test_results.get("p_value", 0) > 0.05
-            )
-            context["raw_data_ljung_box_test_results"] = self._get_rounded_ljung_box_test_results(
-                garch_result.raw_data_ljung_box_test_results
-            )
-            context["raw_data_ljung_box_test_results_success"] = all(
-                p_value > 0.05 for p_value in garch_result.raw_data_ljung_box_test_results.get("lb_pvalue", [])
-            )
-            context["raw_data_ljung_box_test_results_squared"] = self._get_rounded_ljung_box_test_results(
-                garch_result.raw_data_ljung_box_test_results_squared
-            )
-            context["raw_data_ljung_box_test_results_squared_success"] = all(
-                p_value > 0.05 for p_value in garch_result.raw_data_ljung_box_test_results_squared.get("lb_pvalue", [])
-            )
-            context["model_fit_ljung_box_test_results"] = self._get_rounded_ljung_box_test_results(
-                garch_result.model_fit_ljung_box_test_results
-            )
-            context["model_fit_ljung_box_test_results_squared"] = self._get_rounded_ljung_box_test_results(
-                garch_result.model_fit_ljung_box_test_results_squared
-            )
+
+            self._set_test_results(garch_result, context)
             context["p_mean_equation_lags"] = garch_result.p_mean_equation_lags
             context["q_variance_equation_lags"] = garch_result.q_variance_equation_lags
             context["forecast_horizon"] = garch_result.forecast_horizon
@@ -138,6 +113,47 @@ class GarchResultView(DetailView):
                 )
 
         return context
+
+    def _set_test_results(self, garch_result, context: dict):
+        # Engle Arch Test
+        context["raw_data_engle_arch_test_results"] = self._get_rounded_engle_test_results(
+            garch_result.raw_data_engle_arch_test_results
+        )
+        context["raw_data_engle_arch_test_results_success"] = (
+            garch_result.raw_data_engle_arch_test_results.get("p_value", 0) > 0.05
+        )
+        context["model_fit_engle_arch_test_results"] = self._get_rounded_engle_test_results(
+            garch_result.model_fit_engle_arch_test_results
+        )
+        context["model_fit_engle_arch_test_results_success"] = (
+            garch_result.model_fit_engle_arch_test_results.get("p_value", 0) > 0.05
+        )
+
+        # Ljung Box Test
+        context["raw_data_ljung_box_test_results"] = self._get_rounded_ljung_box_test_results(
+            garch_result.raw_data_ljung_box_test_results
+        )
+        context["raw_data_ljung_box_test_results_success"] = all(
+            p_value > 0.05 for p_value in garch_result.raw_data_ljung_box_test_results.get("lb_pvalue", [])
+        )
+        context["raw_data_ljung_box_test_results_squared"] = self._get_rounded_ljung_box_test_results(
+            garch_result.raw_data_ljung_box_test_results_squared
+        )
+        context["raw_data_ljung_box_test_results_squared_success"] = all(
+            p_value > 0.05 for p_value in garch_result.raw_data_ljung_box_test_results_squared.get("lb_pvalue", [])
+        )
+        context["model_fit_ljung_box_test_results"] = self._get_rounded_ljung_box_test_results(
+            garch_result.model_fit_ljung_box_test_results
+        )
+        context["model_fit_ljung_box_test_results_success"] = all(
+            p_value > 0.05 for p_value in garch_result.model_fit_ljung_box_test_results.get("lb_pvalue", [])
+        )
+        context["model_fit_ljung_box_test_results_squared"] = self._get_rounded_ljung_box_test_results(
+            garch_result.model_fit_ljung_box_test_results_squared
+        )
+        context["model_fit_ljung_box_test_results_squared_success"] = all(
+            p_value > 0.05 for p_value in garch_result.model_fit_ljung_box_test_results_squared.get("lb_pvalue", [])
+        )
 
     def _create_time_series_plot_with_log_diffs(self, df: pd.DataFrame, target_column: str) -> str:
         df["Date"] = pd.to_datetime(df["Date"])

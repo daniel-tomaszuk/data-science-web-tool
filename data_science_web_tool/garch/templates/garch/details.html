@@ -159,9 +159,10 @@
                 <div class="col-2">
                     <h5>Engle's ARCH test</h5>
                     {% if raw_data_engle_arch_test_results %}
+                        {{ raw_data_engle_arch_test_results_success }}
                         <p class="m-1"><b>P-Value:</b> {{ raw_data_engle_arch_test_results.p_value|floatformat:6 }}</p>
                         <p class="m-1"><b>LM Statistics:</b> {{ raw_data_engle_arch_test_results.lm_statistics|floatformat:2 }}</p>
-                        {% if model_fit_engle_arch_test_results_success %}
+                        {% if raw_data_engle_arch_test_results_success %}
                             <p class="small alert alert-success">No significant ARCH effects detected.</p>
                         {% else %}
                             <p class="small alert alert-danger">Significant ARCH effects detected.</p>
@@ -256,42 +257,65 @@
             {% endif %}
             {% if time_series_acf_log_diffs_img %}
                 <div class="card mb-4">
-                    <div class="card-header"><strong>Raw Data ACF of Log Diffs</strong></div>
-                    <div class="card-body text-center">
+                    <div class="card-header"><strong>Raw Data ACF of Log Diffs - detects serial correlation in the mean process</strong></div>
+                    <div class="card-body">
                         <img id="plotLogDiffsAcf"
                              src="{{ time_series_acf_log_diffs_img }}"
                              alt="ACF Log Diff Plot"
                              class="img-fluid rounded"
                              style="max-height: 400px;">
+                        <div class="small m-1 ml-4 pl-4 text-left alert alert-info">
+                            <p class="m-0 mt-1"><strong>Information - General Hints</strong></p>
+                            <p class="m-0 mt-1"><strong>No significant spikes:</strong> suggests white noise returns. The mean model is adequate.</p>
+                            <p class="m-0 mt-1"><strong>Spike at lag k (outside the confidence band):</strong> consider adding an AR(k) term.</p>
+                            <p class="m-0 mt-1"><strong>Quickly decaying pattern:</strong> only short-memory; AR(1) is often enough.</p>
+                        </div>
                     </div>
+
                 </div>
             {% endif %}
             {% if time_series_acf_log_diffs_img_squared %}
                 <div class="card mb-4">
-                    <div class="card-header"><strong>Raw Data ACF of Log Diffs Squared</strong></div>
-                    <div class="card-body text-center">
+                    <div class="card-header"><strong>Raw Data ACF of Log Diffs Squared - detects volatility clustering - an ARCH effect</strong></div>
+                    <div class="card-body">
                         <img id="plotLogDiffsAcfToPower"
                              src="{{ time_series_acf_log_diffs_img_squared }}"
                              alt="ACF Log Diff Plot Squared"
                              class="img-fluid rounded"
                              style="max-height: 400px;">
+                        <div class="small m-1 ml-4 pl-4 text-left alert alert-info">
+                            <p class="m-0 mt-1"><strong>Information - General Hints</strong></p>
+                            <p class="m-0 mt-1"><strong>All spikes within bands: </strong>no evidence of heteroskedasticity. ARCH/GARCH may be unnecessary.</p>
+                            <p class="m-0 mt-1"><strong>Persistent positive spikes: </strong>strong volatility clustering. GARCH is needed.</p>
+                            <p class="m-0 mt-1"><strong>Slow, exponential decay: </strong>indicates long-run ARCH effects. Try higher p/q or GARCH(1, 1).</p>
+                        </div>
                     </div>
+
                 </div>
             {% endif %}
             {% if summary %}
-                <div class="card mb-4">
+                <div class="card mb-4 overflow-visible h-auto" style="max-height: none;">
                     <div class="card-header text-center"><strong>Model {{ used_model_type|upper }}({{ p_mean_equation_lags }}, {{ q_variance_equation_lags }}) Summary</strong></div>
-                    <div class="card-body">
+                    <div class="card-body overflow-visible h-auto" style="max-height: none;">
                         <div class="row mt-4">
                             <div class="col-7 m-0 p-0">
-                               <pre style="
+                                <pre style="
                                     white-space: pre-wrap;
                                     font-size: 0.85rem;
                                     line-height: 2;
                                     max-width: 90%;
                                 ">
                                     {{ summary|safe }}
-                               </pre>
+                                </pre>
+                                <div class="small alert alert-info mt-0" style="max-width: 85%;">
+                                    <p class="m-0"><strong>Mean return (μ):</strong> Estimated average return per period (check t-statistic and p-value to assess significance).</p>
+                                    <p class="m-0 mt-1"><strong>R² ≈ 0:</strong> Common for (log-)return models since financial returns behave like white noise.</p>
+                                    <p class="m-0 mt-1"><strong>AIC / BIC:</strong> Use these to compare ARCH/GARCH specifications—lower values indicate a better balance of fit and parsimony.</p>
+                                    <p class="m-0 mt-1"><strong>Baseline variance (ω):</strong> The constant term in the variance equation, representing the long-run variance level.</p>
+                                    <p class="m-0 mt-1"><strong>Shock effect (α<sub>i</sub>):</strong> Each ARCH coefficient measures how much a past squared shock impacts current variance.</p>
+                                    <p class="m-0 mt-1"><strong>Persistence (β<sub>j</sub>):</strong> Each GARCH coefficient reflects how much a past variance carries over into the present, so higher values imply slower decay.</p>
+                                    <p class="m-0 mt-1"><strong>Total persistence:</strong> Sum of all ARCH and GARCH coefficients (∑α<sub>i</sub> + ∑β<sub>j</sub>) - values close to 1 indicate strong volatility clustering but must stay below 1 for stationarity.</p>
+                                </div>
                             </div>
                             <div class="col-5 m-0 p-0">
                                 <div>
@@ -299,6 +323,11 @@
                                     {% if model_fit_engle_arch_test_results %}
                                         <p class="m-1">P-Value: {{ model_fit_engle_arch_test_results.p_value|floatformat:6 }}</p>
                                         <p class="m-1">LM Statistics: {{ model_fit_engle_arch_test_results.lm_statistics|floatformat:2 }}</p>
+                                        {% if model_fit_engle_arch_test_results_success %}
+                                            <p class="small alert alert-success">No significant ARCH effects detected.</p>
+                                        {% else %}
+                                            <p class="small alert alert-danger">Significant ARCH effects detected.</p>
+                                        {% endif %}
                                     {% else %}
                                         <p>No data.</p>
                                      {% endif %}
@@ -327,10 +356,16 @@
                                                 {% endfor %}
                                             </tbody>
                                         </table>
+                                        {% if model_fit_ljung_box_test_results_success %}
+                                            <p class="small alert alert-success">All Ljung–Box p-values exceed 0.05, indicating no ARCH effects within model data.</p>
+                                        {% else %}
+                                            <p class="small alert alert-danger">One or more Ljung–Box p-values are ≤ 0.05, indicating present ARCH effects withing model data.</p>
+                                        {% endif %}
                                     {% else %}
                                         <p>No data.</p>
                                     {% endif %}
                                 </div>
+                                <hr>
                                 <div>
                                     <h5>Model {{ used_model_type|upper }}({{ p_mean_equation_lags }}, {{ q_variance_equation_lags }}) Data Ljung-Box Test - Squared</h5>
                                     {% if model_fit_ljung_box_test_results_squared %}
@@ -354,6 +389,11 @@
                                                 {% endfor %}
                                             </tbody>
                                         </table>
+                                        {% if model_fit_ljung_box_test_results_squared_success %}
+                                            <p class="small alert alert-success">All Ljung–Box p-values exceed 0.05, indicating no ARCH effects within model data.</p>
+                                        {% else %}
+                                            <p class="small alert alert-danger">One or more Ljung–Box p-values are ≤ 0.05, indicating present ARCH effects withing model data.</p>
+                                        {% endif %}
                                     {% else %}
                                         <p>No data.</p>
                                     {% endif %}
@@ -363,7 +403,7 @@
                     </div>
                 </div>
             {% endif %}
-        {% if time_series_acf_log_diffs_img_model_result %}
+            {% if time_series_acf_log_diffs_img_model_result %}
                 <div class="card mb-4">
                     <div class="card-header"><strong>Model {{ used_model_type|upper }}({{ p_mean_equation_lags }}, {{ q_variance_equation_lags }}) Result ACF of Log Diffs</strong></div>
                     <div class="card-body text-center">
