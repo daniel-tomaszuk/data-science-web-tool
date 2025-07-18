@@ -8,13 +8,13 @@ import seaborn as sns
 from django.shortcuts import get_object_or_404
 from django.shortcuts import redirect
 from django.views.generic import DetailView
-from garch.handlers.garch_time_series import GarchTimeSeriesHandler
-from garch.models import GarchResult
-from garch.serializers.serializers import GarchResultCreateSerializer
 from rest_framework.exceptions import ValidationError
 from rest_framework.generics import CreateAPIView
 from statsmodels.tsa.stattools import acf
 
+from garch.handlers.garch_time_series import GarchTimeSeriesHandler
+from garch.models import GarchResult
+from garch.serializers.serializers import GarchResultCreateSerializer
 from preprocessing.models import Data
 
 
@@ -369,7 +369,7 @@ class GarchResultView(DetailView):
         )
         plt.xlabel("Date")
         plt.ylabel("Returns")
-        plt.legend(loc="upper left")
+        plt.legend(loc="lower left")
         plt.grid(True)
         plt.tight_layout()
 
