@@ -257,7 +257,7 @@
             {% endif %}
             {% if time_series_acf_log_diffs_img %}
                 <div class="card mb-4">
-                    <div class="card-header"><strong>Raw Data ACF of Log Diffs - detects serial correlation in the mean process</strong></div>
+                    <div class="card-header text-center"><strong>Raw Data ACF of Log Diffs - detects serial correlation in the mean process</strong></div>
                     <div class="card-body">
                         <img id="plotLogDiffsAcf"
                              src="{{ time_series_acf_log_diffs_img }}"
@@ -276,7 +276,7 @@
             {% endif %}
             {% if time_series_acf_log_diffs_img_squared %}
                 <div class="card mb-4">
-                    <div class="card-header"><strong>Raw Data ACF of Log Diffs Squared - detects volatility clustering - an ARCH effect</strong></div>
+                    <div class="card-header text-center"><strong>Raw Data ACF of Log Diffs Squared - detects volatility clustering - an ARCH effect</strong></div>
                     <div class="card-body">
                         <img id="plotLogDiffsAcfToPower"
                              src="{{ time_series_acf_log_diffs_img_squared }}"
@@ -405,31 +405,50 @@
             {% endif %}
             {% if time_series_acf_log_diffs_img_model_result %}
                 <div class="card mb-4">
-                    <div class="card-header"><strong>Model {{ used_model_type|upper }}({{ p_mean_equation_lags }}, {{ q_variance_equation_lags }}) Result ACF of Log Diffs</strong></div>
-                    <div class="card-body text-center">
+                    <div class="card-header text-center"><strong>Model {{ used_model_type|upper }}({{ p_mean_equation_lags }}, {{ q_variance_equation_lags }}) Result ACF of Log Diffs</strong></div>
+                    <div class="card-body">
                         <img id="plotLogDiffsAcf"
                              src="{{ time_series_acf_log_diffs_img_model_result }}"
                              alt="ACF Log Diff Plot"
                              class="img-fluid rounded"
                              style="max-height: 400px;">
+                        <div class="small m-1 ml-4 pl-4 text-left alert alert-info">
+                            <p class="m-0 mt-1"><strong>Lag range:</strong>Too few lags may miss patterns.
+                            <p class="m-0 mt-1"><strong>Confidence bands:</strong> Dashed lines at ±1.96/√N give a 95 % visual test. </p>
+                            <hr>
+                            <p class="m-0 mt-1">
+                                If all bars lie within the ±1.96/√N confidence bands, your mean equation is adequate (residuals ≈ white noise).
+                                Otherwise, spikes outside the bands (especially at low lags) suggest you may need to add AR terms (increase p).
+                                General Guidance
+                            </p>
+                        </div>
                     </div>
                 </div>
             {% endif %}
             {% if time_series_acf_log_diffs_img_squared_model_result %}
                 <div class="card mb-4">
-                    <div class="card-header"><strong>Model {{ used_model_type|upper }}({{ p_mean_equation_lags }}, {{ q_variance_equation_lags }}) Result ACF of Log Diffs Squared</strong></div>
-                    <div class="card-body text-center">
+                    <div class="card-header text-center"><strong>Model {{ used_model_type|upper }}({{ p_mean_equation_lags }}, {{ q_variance_equation_lags }}) Result ACF of Log Diffs Squared</strong></div>
+                    <div class="card-body">
                         <img id="plotLogDiffsAcfToPower"
                              src="{{ time_series_acf_log_diffs_img_squared_model_result }}"
                              alt="ACF Log Diff Plot Squared"
                              class="img-fluid rounded"
                              style="max-height: 400px;">
+                        <div class="small m-1 ml-4 pl-4 text-left alert alert-info">
+                            <p class="m-0 mt-1"><strong>Lag range:</strong>Too few lags may miss patterns.
+                            <p class="m-0 mt-1"><strong>Confidence bands:</strong> Dashed lines at ±1.96/√N give a 95 % visual test. </p>
+                            <hr>
+                            <p class="m-0 mt-1">
+                                If all bars lie within the ±1.96/√N bands, your volatility model has captured the conditional heteroskedasticity.
+                                Spikes at specific lags suggest underfitting in the variance equation - consider raising the q order (or p for higher - order ARCH effects).
+                            </p>
+                        </div>
                     </div>
                 </div>
             {% endif %}
             {% if forecast_plot %}
                 <div class="card mb-4">
-                    <div class="card-header"><strong>Model {{ used_model_type|upper }}({{ p_mean_equation_lags }}, {{ q_variance_equation_lags }}) Forecast Plot</strong></div>
+                    <div class="card-header text-center"><strong>Model {{ used_model_type|upper }}({{ p_mean_equation_lags }}, {{ q_variance_equation_lags }}) Forecast Plot</strong></div>
                     <div class="card-body text-center">
                         <img id="plotLogDiffsAcfToPower"
                              src="{{ forecast_plot }}"
@@ -441,7 +460,7 @@
             {% endif %}
             {% if forecast_plot_zoomed %}
                 <div class="card mb-4">
-                    <div class="card-header"><strong>Model {{ used_model_type|upper }}({{ p_mean_equation_lags }}, {{ q_variance_equation_lags }}) Forecast Plot</strong></div>
+                    <div class="card-header text-center"><strong>Model {{ used_model_type|upper }}({{ p_mean_equation_lags }}, {{ q_variance_equation_lags }}) Forecast Plot</strong></div>
                     <div class="card-body text-center">
                         <img id="plotLogDiffsAcfToPower"
                              src="{{ forecast_plot_zoomed }}"
