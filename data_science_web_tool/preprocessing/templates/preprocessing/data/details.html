@@ -116,61 +116,68 @@
             <div class="card mb-4">
                 <div class="card-header"><strong>ADF Test Parameters</strong></div>
                 <form method="post" action="{% url "preprocessing:create-stationary-test-results" object.id %}" class="p-3 mb-4">
-
                     {% csrf_token %}
                     <div class="row">
-                        <!-- Target Column Selector -->
-                        <div class="col-3 mb-3">
-                            <label for="targetColumn" class="form-label">Target Column</label>
-                            <select class="form-select" id="targetColumn" name="target_column" required>
-                                {% for col in numerical_columns %}
-                                    <option value="{{ col }}" {% if col == last_adf_test_target_column %}selected{% endif %}>{{ col }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
+                        <div class="col-7">
+                            <div class="row">
+                                    <!-- Target Column Selector -->
+                                    <div class="col-4 mb-3">
+                                        <label for="targetColumn" class="form-label">Target Column</label>
+                                        <select class="form-select" id="targetColumn" name="target_column" required>
+                                            {% for col in numerical_columns %}
+                                                <option value="{{ col }}" {% if col == last_adf_test_target_column %}selected{% endif %}>{{ col }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
 
-                        <!-- Max Augmentation Count -->
-                        <div class="col-2 mb-3">
-                            <label for="maxAugmentation" class="form-label">Max Augmentation Count</label>
-                            <input type="number" class="form-control" id="maxAugmentation" name="max_augmentation_count"
-                                   value="{{ last_adf_test_results_max_augmentation_count|default:10 }}" min="1" max="100" required>
-                        </div>
+                                    <!-- Max Augmentation Count -->
+                                    <div class="col-4 mb-3">
+                                        <label for="maxAugmentation" class="form-label">p<sub>max</sub> Max Augmentation Count</label>
+                                        <input type="number" class="form-control" id="maxAugmentation" name="max_augmentation_count"
+                                               value="{{ last_adf_test_results_max_augmentation_count|default:10 }}" min="1" max="100" required>
+                                    </div>
 
-                        <!-- Differentiate Count -->
-                        <div class="col-2 mb-3">
-                            <label for="differentiateCount" class="form-label">Differentiate Count</label>
-                            <input type="number" class="form-control" id="differentiateCount" name="differentiate_count"
-                                   value="{{ last_adf_test_results_differentiate_count|default:1 }}" min="1" max="10" required>
-                        </div>
+                                    <!-- Differentiate Count -->
+                                    <div class="col-4 mb-3">
+                                        <label for="differentiateCount" class="form-label">Differentiate Count</label>
+                                        <input type="number" class="form-control" id="differentiateCount" name="differentiate_count"
+                                               value="{{ last_adf_test_results_differentiate_count|default:1 }}" min="1" max="10" required>
+                                    </div>
+                                </div>
 
-
-
-
-
-                    </div>
-
-
-
-
-                    <div class="row">
-
-                        <!-- Test Version Radio Buttons -->
-                        <div class="col-12 mb-3">
-                            <label class="form-label">Test Version</label>
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="test_version" id="testVersionN" value="n"
-                                       {% if last_adf_test_results_test_version == 'n' or not last_adf_test_results_test_version %}checked{% endif %}>
-                                <label class="form-check-label" for="testVersionN">n - No constant, no deterministic trend</label>
+                            <div class="row">
+                                <!-- Test Version Radio Buttons -->
+                                <div class="col-7 mb-3">
+                                    <label class="form-label">Test Version</label>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="test_version" id="testVersionN" value="n"
+                                               {% if last_adf_test_results_test_version == 'n' or not last_adf_test_results_test_version %}checked{% endif %}>
+                                        <label class="form-check-label" for="testVersionN">n - No constant, no deterministic trend</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="test_version" id="testVersionC" value="c"
+                                               {% if last_adf_test_results_test_version == 'c' %}checked{% endif %}>
+                                        <label class="form-check-label" for="testVersionC">c - Adds constant, no deterministic trend</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="test_version" id="testVersionT" value="t"
+                                               {% if last_adf_test_results_test_version == 't' %}checked{% endif %}>
+                                        <label class="form-check-label" for="testVersionT">t - Adds deterministic trend and constant</label>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="test_version" id="testVersionC" value="c"
-                                       {% if last_adf_test_results_test_version == 'c' %}checked{% endif %}>
-                                <label class="form-check-label" for="testVersionC">c - Adds constant, no deterministic trend</label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="test_version" id="testVersionT" value="t"
-                                       {% if last_adf_test_results_test_version == 't' %}checked{% endif %}>
-                                <label class="form-check-label" for="testVersionT">t - Adds deterministic trend and constant</label>
+                        </div>
+                        <div class="col-5">
+                            <div class="small alert alert-info">
+                                <p class="m-0 mt-1"><strong>Choosing p<sub>max</sub>:</strong></p>
+                                <p class="m-0">
+                                    If your sample size N is small (<200), set p<sub>max</sub> ≈ 10–15; for large N, up to √N.
+                                    Make the p<sub>max</sub> value higher in steps. Only first p<sub>max</sub> which passes the test should be considered.
+                                </p>
+                                <p class="m-0 mt-1"><strong>Interpreting test statistic vs. critical values:</strong></p>
+                                <p class="m-0">If τ<sub>stat</sub> < τ<sub>crit</sub> (more negative), you reject H₀.</p>
+                                <p class="m-0 mt-1"><strong>When to difference again:</strong></p>
+                                <p class="m-0">If non-stationary at <strong>d</strong>, re-run with d + 1. Beware of over-differencing.</p>
                             </div>
                         </div>
                     </div>
@@ -191,8 +198,8 @@
                             <thead>
                                 <tr>
                                     <th>Index</th>
-                                    <th>ADF Test statistic</th>
-                                    <th>Augmentation Count</th>
+                                    <th>ADF Test statistic (τ<sub>stat</sub>)</th>
+                                    <th>Augmentation Count (p<sub>max</sub>)</th>
                                     <th>Critical Value ADF (1%)</th>
                                     <th>Critical Value ADF (5%)</th>
                                     <th>Critical Value ADF (10%)</th>
