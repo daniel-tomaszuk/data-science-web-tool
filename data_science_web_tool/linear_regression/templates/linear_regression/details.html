@@ -4,8 +4,8 @@
 <div class="container mt-4">
     <h2 class="mb-3">Analyze Time Series Data</h2>
     <div class="mb-3">{{ object }}</div>
-    <div class="row g-4">
-        <div class="col-md-4">
+    <div class="row">
+        <div class="col-4">
             {% if form.errors or validation_errors %}
                 <div class="alert alert-danger">{{ form.errors }}</div>
             {% endif %}
@@ -83,13 +83,36 @@
                 <!-- Submit -->
                 <button type="submit" class="btn btn-primary mt-3 mb-3">Analyze</button>
             </form>
+            <div class="row small alert alert-info m-1 mb-3 p-0 pb-2" style="text-align: justify;">
+                <p class="m-0 mt-1"><strong>Target Column:</strong>
+                    Pick the data column you want to model.
+                </p>
+                <p class="m-0 mt-1"><strong>Model type:</strong>
+                    <strong>Linear Regression</strong> fits a straight-line relationship between past lags and your target - good for smooth trends.
+                    <strong>Regression Tree</strong> splits on lag thresholds to capture nonlinear patterns and regime shifts. Choose regression trees when you suspect threshold effects.
+                </p>
+                <p class="m-0 mt-1"><strong>Lag Size:</strong>
+                    Number of past observations to include as features. Larger lags captures longer memory but risks overfitting.
+                </p>
+                <p class="m-0 mt-1"><strong>Forecast:</strong>
+                    Units for your prediction horizon (days / weeks / months). Matches time units from the analyzed series.
+                </p>
+                <p class="m-0 mt-1"><strong>Max Depth (Regression Tree only):</strong>
+                    Maximum depth of the tree. Deeper trees capture more intricate patterns but may overfit.
+                </p>
+            </div>
         </div>
-        <div class="col-md-8">
+        <div class="col-8 mt-4 mb-3">
             <div class="card h-100">
-                <div class="card-header"><strong>DataFrame.head(5)</strong></div>
+                <div class="card-header text-center"><strong>DataFrame</strong></div>
                 <div class="card-body">
+                    <p>DataFrame.head(5)</p>
                     <div class="table-responsive">
                         {{ statistics.head|safe }}
+                    </div>
+                    <p>DataFrame.describe().T</p>
+                    <div class="table-responsive">
+                        {{ statistics.describe|safe }}
                     </div>
                 </div>
             </div>
@@ -101,7 +124,7 @@
     {% endif %}
 
     {% if base64_image %}
-        <div class="row mb-4">
+        <div class="row">
             <!-- Forecast Plot Column -->
             <div class="col-md-9">
                 <div class="card h-100">

@@ -14,8 +14,7 @@ class LinearRegressionTimeSeriesResult(models.Model):
         "regression_tree": RegressionTreeTimeSeriesHandler,
     }
     MODEL_TYPES_CHOICES = tuple(
-        (model_type, model_type.replace("_", " ").title())
-        for model_type in SUPPORTED_HANDLERS.keys()
+        (model_type, model_type.replace("_", " ").title()) for model_type in SUPPORTED_HANDLERS.keys()
     )
     data = models.ForeignKey(
         Data,
@@ -66,11 +65,12 @@ class LinearRegressionTimeSeriesResult(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def get_statistics(self, statistics_type: str) -> dict:
-        statistics_keys = (
-            "r_2", "mse", "mae", "rmse", "mape"
-        )
-        statistics = {            "slope": round(self.slope, 4) if self.slope else None,
-            "intercept": round(self.intercept, 4) if self.intercept else None,}
+        statistics_keys = ("r_2", "mse", "mae", "rmse", "mape")
+        statistics = {
+            "slope": round(self.slope, 4) if self.slope else None,
+            "intercept": round(self.intercept, 4) if self.intercept else None,
+        }
+
         for key in statistics_keys:
             key: str = statistics_type + "_" + key
             statistics[key] = getattr(self, key, None)
@@ -80,6 +80,4 @@ class LinearRegressionTimeSeriesResult(models.Model):
         return statistics
 
     def __str__(self):
-        return (
-            f"Linear Regression TimeSeries Result {self.data} -> {self.target_column}"
-        )
+        return f"Linear Regression TimeSeries Result {self.data} -> {self.target_column}"
