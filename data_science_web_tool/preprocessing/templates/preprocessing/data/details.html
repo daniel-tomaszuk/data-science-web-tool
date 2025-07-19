@@ -141,7 +141,7 @@
                                     <div class="col-4 mb-3">
                                         <label for="differentiateCount" class="form-label">Differentiate Count</label>
                                         <input type="number" class="form-control" id="differentiateCount" name="differentiate_count"
-                                               value="{{ last_adf_test_results_differentiate_count|default:1 }}" min="1" max="10" required>
+                                               value="{{ last_adf_test_results_differentiate_count|default:0 }}" min="0" max="10" required>
                                     </div>
                                 </div>
 
@@ -187,7 +187,7 @@
 
                     <!-- Submit Button -->
                     <div class="row">
-                        <button type="submit" class="col-12 btn btn-primary">Run ADF Test</button>
+                        <button type="submit" class="col-12 btn btn-primary">Run Tests</button>
                     </div>
                 </form>
 
@@ -231,23 +231,40 @@
     </div>
     <div class="row">
         <div class="col-6 mb-4">
-            <h3>Phillips-Perron (PP) Test</h3>
-            {% if pp_test_results %}
-                <pre>{{ pp_test_results.summary }}</pre>
+            <h3>Raw Data Phillips-Perron (PP) Test</h3>
+            {% if raw_data_pp_test_results %}
+                <pre>{{ raw_data_pp_test_results.summary }}</pre>
             {% else %}
                 <div>No data.</div>
             {% endif %}
-
         </div>
         <div class="col-6 mb-4">
-            <h3>Kwiatkowski–Phillips–Schmidt–Shin (KPSS) Test</h3>
-            {% if kpss_test_results %}
-                <div>Test statistic: {{ kpss_test_results.test_statistic }}</div>
-                <div>P-Value: {{ kpss_test_results.p_value }}</div>
+            <h3>Differentiated ({{ last_adf_test_results_differentiate_count }}) Data Phillips-Perron (PP) Test</h3>
+            {% if diff_data_pp_test_results %}
+                <pre>{{ diff_data_pp_test_results.summary }}</pre>
             {% else %}
                 <div>No data.</div>
             {% endif %}
-
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-6 mb-4">
+            <h3>Raw Data Kwiatkowski–Phillips–Schmidt–Shin (KPSS) Test</h3>
+            {% if raw_data_kpss_test_results %}
+                <div>Test statistic: {{ raw_data_kpss_test_results.test_statistic }}</div>
+                <div>P-Value: {{ raw_data_kpss_test_results.p_value }}</div>
+            {% else %}
+                <div>No data.</div>
+            {% endif %}
+        </div>
+        <div class="col-6 mb-4">
+            <h3>Differentiated ({{ last_adf_test_results_differentiate_count }}) Data Kwiatkowski–Phillips–Schmidt–Shin (KPSS) Test</h3>
+            {% if diff_data_kpss_test_results %}
+                <div>Test statistic: {{ diff_data_kpss_test_results.test_statistic }}</div>
+                <div>P-Value: {{ diff_data_kpss_test_results.p_value }}</div>
+            {% else %}
+                <div>No data.</div>
+            {% endif %}
         </div>
     </div>
     {% include "preprocessing/components/create_image.html" %}

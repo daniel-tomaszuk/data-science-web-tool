@@ -153,8 +153,10 @@ class DataTestResult(models.Model):
     test_version = models.CharField(null=True, blank=True)
     differentiate_count = models.IntegerField(null=True, blank=True)
 
-    pp_test_results = models.JSONField(null=True, blank=True)
-    kpss_test_results = models.JSONField(null=True, blank=True)
+    raw_data_pp_test_results = models.JSONField(null=True, blank=True)
+    raw_data_kpss_test_results = models.JSONField(null=True, blank=True)
+    diff_data_pp_test_results = models.JSONField(null=True, blank=True)
+    diff_data_kpss_test_results = models.JSONField(null=True, blank=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

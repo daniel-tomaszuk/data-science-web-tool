@@ -50,11 +50,18 @@ class DataDetailView(DetailView):
         context["last_adf_test_datetime"] = last_adf_test.created_at if last_adf_test else None
         context["last_adf_test_results_differentiate_count"] = last_adf_test.differentiate_count
         context["last_adf_test_results_test_version"] = last_adf_test.test_version
-        context["pp_test_results"] = last_adf_test.pp_test_results
-        context["kpss_test_results"] = {
-            "p_value": round(last_adf_test.kpss_test_results.get("p_value", 0), 6),
-            "test_statistic": round(last_adf_test.kpss_test_results.get("test_statistic", 0), 6),
-        }
+        context["raw_data_pp_test_results"] = last_adf_test.raw_data_pp_test_results
+        context["diff_data_pp_test_results"] = last_adf_test.diff_data_pp_test_results
+        if last_adf_test.raw_data_kpss_test_results:
+            context["raw_data_kpss_test_results"] = {
+                "p_value": round(last_adf_test.raw_data_kpss_test_results.get("p_value", 0), 6),
+                "test_statistic": round(last_adf_test.raw_data_kpss_test_results.get("test_statistic", 0), 6),
+            }
+        if last_adf_test.diff_data_kpss_test_results:
+            context["diff_data_kpss_test_results"] = {
+                "p_value": round(last_adf_test.diff_data_kpss_test_results.get("p_value", 0), 6),
+                "test_statistic": round(last_adf_test.diff_data_kpss_test_results.get("test_statistic", 0), 6),
+            }
         context["last_adf_test_results_highlight_indices"] = self.__adf_get_first_correct_row_index(adf_results)
         return context
 
@@ -93,28 +100,42 @@ class CreateStationaryTestResultsAPIView(CreateAPIView):
         validated_data = serializer.validated_data
         test_handler = DataTestResult.SUPPORTED_TEST_HANDLERS.get(validated_data["test_type"])
         df: pd.DataFrame = instance.get_df()
+        differentiate_count = validated_data["differentiate_count"]
 
         time_series = df[validated_data["target_column"]]
         test_handler_instance = test_handler(
             series=time_series.copy(),
             max_aug=validated_data["max_augmentation_count"],
             version=validated_data["test_version"],
-            differentiate_count=validated_data["differentiate_count"],
+            differentiate_count=differentiate_count,
         )
         adf_test_results: pd.DataFrame = test_handler_instance.run()
 
-        pp_test = PhillipsPerron(time_series.copy(), trend="n")
-        kpss_stat, kpss_p_value, _, _ = kpss(time_series.copy(), regression="c")
+        raw_data_pp_test = PhillipsPerron(time_series.copy(), trend="n")
+        raw_data_kpss_stat, raw_data_kpss_p_value, _, _ = kpss(time_series.copy(), regression="c")
+
+        if differentiate_count > 0:
+            for i in range(differentiate_count):
+                time_series = time_series.diff().dropna()
+
+        diff_data_pp_test = PhillipsPerron(time_series.copy(), trend="n")
+        diff_data_kpss_stat, diff_data_kpss_p_value, _, _ = kpss(time_series.copy(), regression="c")
 
         DataTestResult.objects.create(
             data=instance,
             results=adf_test_results.to_dict(),
-            pp_test_results={
-                "test_statistic": pp_test.stat,
-                "p_value": pp_test.pvalue,
-                "summary": str(pp_test.summary()),
+            raw_data_pp_test_results={
+                "test_statistic": raw_data_pp_test.stat,
+                "p_value": raw_data_pp_test.pvalue,
+                "summary": str(raw_data_pp_test.summary()),
             },
-            kpss_test_results={"test_statistic": kpss_stat, "p_value": kpss_p_value},
+            raw_data_kpss_test_results={"test_statistic": raw_data_kpss_stat, "p_value": raw_data_kpss_p_value},
+            diff_data_kpss_test_results={"test_statistic": diff_data_kpss_stat, "p_value": diff_data_kpss_p_value},
+            diff_data_pp_test_results={
+                "test_statistic": diff_data_pp_test.stat,
+                "p_value": diff_data_pp_test.pvalue,
+                "summary": str(diff_data_pp_test.summary()),
+            },
             **validated_data,
         )
 

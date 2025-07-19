@@ -51,17 +51,17 @@ class ADFTestHandler:
         *args,
         max_aug: int = 10,
         version: str = "n",
-        differentiate_count: int = 1,
+        differentiate_count: int = 0,
         **kwargs,
     ):
         self.series = series
         self.max_aug = max_aug
         self.version = version
-        self.differentiate_count = differentiate_count if differentiate_count > 1 else 1
+        self.differentiate_count = differentiate_count if differentiate_count >= 0 else 0
         if self.version not in self.CRITICAL_VALUES_CONST:
             raise ValueError("Version not supported.")
 
-        for i in range(self.differentiate_count - 1):
+        for i in range(self.differentiate_count):
             self.series = self.series.diff().dropna()
 
     def run(self):
