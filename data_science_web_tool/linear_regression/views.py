@@ -18,9 +18,7 @@ from preprocessing.models import Data
 
 class LinearRegressionView(DetailView):
     template_name = "linear_regression/details.html"
-    queryset = Data.objects.prefetch_related(
-        "linear_regression_timeseries_results"
-    ).all()
+    queryset = Data.objects.prefetch_related("linear_regression_timeseries_results").all()
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -32,9 +30,7 @@ class LinearRegressionView(DetailView):
         ]
         context["model_types"] = LinearRegressionTimeSeriesResult.MODEL_TYPES_CHOICES
 
-        if linear_regression_result := self.object.linear_regression_timeseries_results.order_by(
-            "-created_at"
-        ).first():
+        if linear_regression_result := self.object.linear_regression_timeseries_results.order_by("-created_at").first():
             context["linear_regression_statistics"] = {
                 **linear_regression_result.get_statistics(statistics_type="val"),
                 **linear_regression_result.get_statistics(statistics_type="test"),
@@ -48,9 +44,7 @@ class LinearRegressionView(DetailView):
                 linear_regression_result=linear_regression_result,
             )
             context["base64_image"] = base64_image
-            context["linear_regression_target_column"] = (
-                linear_regression_result.target_column
-            )
+            context["linear_regression_target_column"] = linear_regression_result.target_column
             context["linear_regression_lag"] = linear_regression_result.lag_size
             context["used_model_type"] = linear_regression_result.model_type
             context["max_tree_depth"] = linear_regression_result.max_tree_depth or 1
@@ -61,9 +55,7 @@ class LinearRegressionView(DetailView):
 
         return context
 
-    def _create_regression_plot(
-        self, linear_regression_result: LinearRegressionTimeSeriesResult
-    ):
+    def _create_regression_plot(self, linear_regression_result: LinearRegressionTimeSeriesResult):
         df = self.object.get_df()
         target_column: str = linear_regression_result.target_column
         forecast_horizon_data = linear_regression_result.forecast or []
@@ -78,18 +70,21 @@ class LinearRegressionView(DetailView):
         plt.figure(figsize=(12, 8))
 
         sns.lineplot(
-            x=index, y=list(df[target_column]) , label=f"Original values for {target_column}",
+            x=index,
+            y=list(df[target_column]),
+            label=f"Original values for {target_column}",
         )
         ax = sns.lineplot(
-            x=index, y=list(df[target_column + "_lagged"]) , label=f"Lagged values for {target_column}",
+            x=index,
+            y=list(df[target_column + "_lagged"]),
+            label=f"Lagged values for {target_column}",
         )
 
-
         train_end = int(len(index) * linear_regression_result.train_percentage // 100)
-        ax.axvline(index[train_end], color='red', linestyle='-.', label='Train/Val Split')
+        ax.axvline(index[train_end], color="red", linestyle="-.", label="Train/Val Split")
 
         val_end = train_end + int(len(index) * linear_regression_result.validation_percentage // 100)
-        ax.axvline(index[val_end], color='blue', linestyle='-.', label='Val/Test Split')
+        ax.axvline(index[val_end], color="blue", linestyle="-.", label="Val/Test Split")
 
         if len(forecast_horizon_data):
             step = (index[-1] - index[-2]) if len(index) > 1 else pd.Timedelta(days=1)
@@ -148,9 +143,7 @@ class LinearRegressionTimeSeriesCreateAPIView(CreateAPIView):
         target_column: str = validated_data["target_column"]
         column_type: str = data_instance.data_columns.get(target_column)
 
-        handler = LinearRegressionTimeSeriesResult.SUPPORTED_HANDLERS.get(
-            validated_data.get("model_type")
-        )
+        handler = LinearRegressionTimeSeriesResult.SUPPORTED_HANDLERS.get(validated_data.get("model_type"))
         if not handler:
             raise ValidationError("Selected model type is not supported.")
 
@@ -195,7 +188,4 @@ class LinearRegressionTimeSeriesCreateAPIView(CreateAPIView):
             **model_metadata["val_statistics"],
             **model_metadata["test_statistics"],
         )
-        return redirect(
-            "linear_regression:linear-regression-details", pk=data_instance.id
-        )
-
+        return redirect("linear_regression:linear-regression-details", pk=data_instance.id)

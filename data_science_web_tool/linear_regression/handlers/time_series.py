@@ -84,6 +84,7 @@ class LinearRegressionBase:
         model: LinearRegression | DecisionTreeRegressor,
         keys_prefix: str = "",
     ) -> tuple[pd.DataFrame, dict]:
+        # model predicts the differences
         predictions = df[self.column_name_lagged] + model.predict(df[[self.column_name_lagged]])
         actual = df[self.column_name]
         return predictions, {
@@ -103,7 +104,9 @@ class LinearRegressionTimeSeriesHandler(LinearRegressionBase):
     def handle(self):
         df: pd.DataFrame = self.data.get_df()
         df[self.column_name_lagged] = df[self.column_name].shift(self.lag_size)
-        df["values_diff"] = df[self.column_name] - df[self.column_name_lagged]
+        df["values_diff"] = (
+            df[self.column_name] - df[self.column_name_lagged]
+        )  # TODO: CHECK HOW MANY TIMES WE NEED TO DIFF FROM STATIONARITY TESTS -> ADF
         df.dropna(inplace=True)
         df.reset_index(inplace=True)
 
@@ -171,6 +174,7 @@ class RegressionTreeTimeSeriesHandler(LinearRegressionBase):
     def handle(self):
         df: pd.DataFrame = self.data.get_df()
         df[self.column_name_lagged] = df[self.column_name].shift(self.lag_size)
+        df["values_diff"] = df[self.column_name] - df[self.column_name_lagged]
         df.dropna(inplace=True)
         df.reset_index(inplace=True)
 
@@ -180,7 +184,7 @@ class RegressionTreeTimeSeriesHandler(LinearRegressionBase):
 
     def _regression_tree(self, train_df: pd.DataFrame, val_df: pd.DataFrame, test_df: pd.DataFrame) -> tuple:
         x = train_df[[self.column_name_lagged]]
-        y = train_df[self.column_name]
+        y = train_df["values_diff"]
 
         model = DecisionTreeRegressor(max_depth=self.max_tree_depth)
         model.fit(x, y)
