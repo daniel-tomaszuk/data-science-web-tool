@@ -157,9 +157,8 @@
             </div>
             <div class="row p-1 mt-5">
                 <div class="col-2">
-                    <h5>Engle's ARCH test</h5>
+                    <h5>Raw Data Engle's ARCH test</h5>
                     {% if raw_data_engle_arch_test_results %}
-                        {{ raw_data_engle_arch_test_results_success }}
                         <p class="m-1"><b>P-Value:</b> {{ raw_data_engle_arch_test_results.p_value|floatformat:6 }}</p>
                         <p class="m-1"><b>LM Statistics:</b> {{ raw_data_engle_arch_test_results.lm_statistics|floatformat:2 }}</p>
                         {% if raw_data_engle_arch_test_results_success %}
@@ -172,7 +171,7 @@
                      {% endif %}
                 </div>
                 <div class="col-5">
-                    <h5>Ljung-Box Test</h5>
+                    <h5>Raw Data Ljung-Box Test</h5>
                     {% if raw_data_ljung_box_test_results %}
                         <table class="table table-bordered table-striped table-hover align-middle">
                             <thead class="table-light">
@@ -204,7 +203,7 @@
                     {% endif %}
                 </div>
                 <div class="col-5">
-                    <h5>Ljung-Box Test - Squared</h5>
+                    <h5>Raw Data Ljung-Box Test - Squared</h5>
                     {% if raw_data_ljung_box_test_results_squared %}
                         <table class="table table-bordered table-striped table-hover align-middle">
                             <thead class="table-light">

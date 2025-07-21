@@ -110,6 +110,8 @@ class LinearRegressionView(DetailView):
         plt.xticks(rotation=45)
         plt.gcf().autofmt_xdate()
         plt.grid(True)
+        plt.xlabel("Date")
+        plt.ylabel(f"{target_column} Values")
         plt.tight_layout()
 
         # Save the plot as a base64 string
