@@ -208,6 +208,10 @@ class GarchHandlerBase:
         compare_df: pd.DataFrame,
         keys_prefix: str = "",
     ) -> dict:
+        """
+        Takes `main_df` data, creates productions for it and the compares forecasts
+        with `compare_df` (validation or test sets) data.
+        """
         main_returns = main_df[self.column_name_log_diff].dropna().copy()
         compare_returns = compare_df[self.column_name_log_diff].dropna().copy()
 
@@ -229,7 +233,7 @@ class GarchHandlerBase:
             )
             fit = model.fit(disp="off")
 
-            # 1 step forecast
+            # forecast 1 time unit into the future, then append results and forecast once more
             forecast = fit.forecast(horizon=1)
             mu = forecast.mean.iloc[-1, 0]
             var = forecast.variance.iloc[-1, 0]
@@ -255,7 +259,7 @@ class GarchHandlerBase:
         vol_rmse = np.sqrt(vol_mse)
         vol_qlike = np.mean(np.log(predicted_variance) + actual_squared / predicted_variance)
 
-        # --- Mean forecast evaluation (optional) ---
+        # --- Mean forecast evaluation ---
         predicted_mean = forecast_df["forecast_mean"]
         actual = forecast_df["actual"]
 
@@ -264,6 +268,7 @@ class GarchHandlerBase:
         mean_mae = mean_absolute_error(actual, predicted_mean)
         mean_rmse = np.sqrt(mean_mse)
         mean_mape = mean_absolute_percentage_error(actual, predicted_mean)
+        mean_smape = self._smape(actual, predicted_mean)
         return {
             keys_prefix + "vol_mse": round(float(vol_mse), 6),
             keys_prefix + "vol_mae": round(float(vol_mae), 6),
@@ -274,6 +279,7 @@ class GarchHandlerBase:
             keys_prefix + "mean_mae": round(float(mean_mae), 6),
             keys_prefix + "mean_rmse": round(float(mean_rmse), 6),
             keys_prefix + "mean_mape": round(float(mean_mape), 6),
+            keys_prefix + "mean_smape": round(float(mean_smape), 6),
         }
 
     def _forecast_future_values(
@@ -323,6 +329,21 @@ class GarchHandlerBase:
             "forecast_variance": [round(float(value), 8) for value in forecast_vars],
             "forecast_index": forecast_index,
         }
+
+    def _smape(self, y_true, y_pred) -> float:
+        """
+        Symmetric Mean Absolute Percentage Error.
+        """
+        y_true = np.array(y_true)
+        y_pred = np.array(y_pred)
+        denominator = (np.abs(y_true) + np.abs(y_pred)) / 2.0
+        diff = np.abs(y_true - y_pred)
+
+        # Avoid division by zero
+        nonzero_mask = denominator != 0
+        smape_value = np.mean(diff[nonzero_mask] / denominator[nonzero_mask])
+
+        return smape_value
 
 
 class ArchTimeSeriesHandler(GarchHandlerBase):

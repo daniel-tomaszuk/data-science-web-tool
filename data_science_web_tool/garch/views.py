@@ -95,7 +95,8 @@ class GarchResultView(DetailView):
                 "val_mean_mse": garch_result.val_mean_mse,
                 "val_mean_mae": garch_result.val_mean_mae,
                 "val_mean_rmse": garch_result.val_mean_rmse,
-                "val_mean_mape": garch_result.val_mean_mape * 100,
+                "val_mean_mape": garch_result.val_mean_mape * 100 if garch_result.val_mean_mape else None,
+                "val_mean_smape": garch_result.val_mean_smape * 100 if garch_result.val_mean_smape else None,
                 "test_vol_mse": garch_result.test_vol_mse,
                 "test_vol_mae": garch_result.test_vol_mae,
                 "test_vol_rmse": garch_result.test_vol_rmse,
@@ -104,7 +105,8 @@ class GarchResultView(DetailView):
                 "test_mean_mse": garch_result.test_mean_mse,
                 "test_mean_mae": garch_result.test_mean_mae,
                 "test_mean_rmse": garch_result.test_mean_rmse,
-                "test_mean_mape": garch_result.test_mean_mape * 100,
+                "test_mean_mape": garch_result.test_mean_mape * 100 if garch_result.test_mean_mape else None,
+                "test_mean_smape": garch_result.test_mean_smape * 100 if garch_result.test_mean_smape else None,
             }
             if garch_result.forecast_horizon > 0:
                 context["forecast_plot"], context["forecast_plot_zoomed"] = self._create_forecast_plots(

@@ -1,7 +1,7 @@
 from django.db import models
+
 from garch.handlers.garch_time_series import ArchTimeSeriesHandler
 from garch.handlers.garch_time_series import GarchTimeSeriesHandler
-
 from preprocessing.models import Data
 
 
@@ -87,6 +87,11 @@ class GarchResult(models.Model):
         blank=True,
         help_text="Validation set: Mean Absolute Percentage Error for predicted vs. actual returns.",
     )
+    val_mean_smape = models.FloatField(
+        null=True,
+        blank=True,
+        help_text="Validation set: Symmetric Mean Absolute Percentage Error for predicted vs. actual returns.",
+    )
 
     # Test Set Statistics
     test_vol_mse = models.FloatField(
@@ -119,6 +124,11 @@ class GarchResult(models.Model):
     )
     test_mean_mape = models.FloatField(
         null=True, blank=True, help_text="Test set: Mean Absolute Percentage Error for predicted vs. actual returns."
+    )
+    test_mean_smape = models.FloatField(
+        null=True,
+        blank=True,
+        help_text="Test set: Symmetric Mean Absolute Percentage Error for predicted vs. actual returns.",
     )
 
     created_at = models.DateTimeField(auto_now_add=True)

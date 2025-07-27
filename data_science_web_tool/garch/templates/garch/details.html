@@ -533,10 +533,35 @@
                     <tr>
                         <td>Mean MAPE</td>
                         <td>
-                            {{ garch_statistics.val_mean_mape|floatformat:2 }}%
+                            {% if garch_statistics.val_mean_mape < 1000 %}
+                                {{ garch_statistics.val_mean_mape|floatformat:2 }}%
+                            {% else %}
+                                {{ "Too large due to near-zero returns" }}
+                            {% endif %}
                         </td>
                         <td>
-                            {{ garch_statistics.test_mean_mape|floatformat:2 }}%
+                            {% if garch_statistics.test_mean_mape and garch_statistics.test_mean_mape < 1000 %}
+                                {{ garch_statistics.test_mean_mape|floatformat:2 }}%
+                            {% else %}
+                                {{ "Too large due to near-zero returns" }}
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Mean SMAPE</td>
+                        <td>
+                            {% if garch_statistics.val_mean_smape %}
+                                {{ garch_statistics.val_mean_smape|floatformat:2 }}%
+                            {% else %}
+                                N/A
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if garch_statistics.test_mean_smape %}
+                                {{ garch_statistics.test_mean_smape|floatformat:2 }}%
+                            {% else %}
+                                N/A
+                            {% endif %}
                         </td>
                     </tr>
                 </tbody>
