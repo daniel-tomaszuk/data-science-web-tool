@@ -17,6 +17,7 @@ class LinePlotHandler(BasePlotHandler):
 
         title = f"Line plot of {self.x_label} vs. {self.y_label}"
         plt.title(title)
+        plt.legend((self.y_label,), loc="upper left")
         plt.grid(True)
         plt.tight_layout()
 
@@ -39,18 +40,13 @@ class LinePlotHandler(BasePlotHandler):
             plot_kwargs["x"] = df.index
             y_label = self.axis_x_name
 
-        elif (
-            self.axis_y_name and self.axis_y_name in df.columns and not self.axis_x_name
-        ):
+        elif self.axis_y_name and self.axis_y_name in df.columns and not self.axis_x_name:
             plot_kwargs["y"] = df[self.axis_y_name]
             plot_kwargs["x"] = df.index
             y_label = self.axis_y_name
 
         elif (
-            self.axis_x_name
-            and self.axis_x_name in df.columns
-            and self.axis_y_name
-            and self.axis_y_name in df.columns
+            self.axis_x_name and self.axis_x_name in df.columns and self.axis_y_name and self.axis_y_name in df.columns
         ):
             plot_kwargs["y"] = df[self.axis_y_name]
             plot_kwargs["x"] = df[self.axis_x_name]
