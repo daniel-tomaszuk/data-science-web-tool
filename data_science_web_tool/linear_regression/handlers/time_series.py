@@ -1,3 +1,6 @@
+from collections import deque
+
+import numpy as np
 import pandas as pd
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_absolute_error
@@ -5,7 +8,6 @@ from sklearn.metrics import mean_absolute_percentage_error
 from sklearn.metrics import mean_squared_error
 from sklearn.metrics import r2_score
 from sklearn.metrics import root_mean_squared_error
-from sklearn.model_selection import TimeSeriesSplit
 from sklearn.tree import DecisionTreeRegressor
 
 from preprocessing.models import Data
@@ -46,14 +48,14 @@ class LinearRegressionBase:
         if not self.forecast_horizon:
             return future_predictions
 
-        last_prediction = df[self.column_name_lagged].iloc[-1]
-        future_predictions.append(last_prediction)
+        p = int(self.lag_size)
+        history = deque(df[self.column_name].iloc[-p:].astype(float).tolist(), maxlen=p)
         for _ in range(self.forecast_horizon):
-            input_df = pd.DataFrame([[last_prediction]], columns=[self.column_name_lagged])
-            predicted_diff = model.predict(input_df)[0]
-            next_prediction = last_prediction + predicted_diff
-            future_predictions.append(next_prediction)
-            last_prediction = next_prediction
+            x_in = np.array([[history[0]]])
+            delta_hat = float(model.predict(x_in)[0])  # Δ^{(p)} = y_t - y_{t-p}
+            next_level = history[0] + delta_hat  # y_t = y_{t-p} + Δ^{(p)}
+            history.append(next_level)
+            future_predictions.append(next_level)
 
         return future_predictions
 
@@ -104,9 +106,7 @@ class LinearRegressionTimeSeriesHandler(LinearRegressionBase):
     def handle(self):
         df: pd.DataFrame = self.data.get_df()
         df[self.column_name_lagged] = df[self.column_name].shift(self.lag_size)
-        df["values_diff"] = (
-            df[self.column_name] - df[self.column_name_lagged]
-        )  # TODO: CHECK HOW MANY TIMES WE NEED TO DIFF FROM STATIONARITY TESTS -> ADF
+        df["values_diff"] = df[self.column_name] - df[self.column_name_lagged]
         df.dropna(inplace=True)
         df.reset_index(inplace=True)
 
@@ -120,25 +120,8 @@ class LinearRegressionTimeSeriesHandler(LinearRegressionBase):
         val_df: pd.DataFrame,
         test_df: pd.DataFrame,
     ) -> tuple:
-        tscv = TimeSeriesSplit(n_splits=5)
-
         x = train_df[[self.column_name_lagged]]
-        # y = df[self.column_name]
         y = train_df["values_diff"]
-
-        # TODO: use TimeSeriesSplit
-        # cv_mse_scores = []
-        # for i, (train_idx, val_idx) in enumerate(tscv.split(x)):
-        #     X_train_fold, X_val_fold = x[train_idx], x[val_idx]
-        #     y_train_fold, y_val_fold = y_train[train_idx], y_train[val_idx]
-        #
-        #     model = RandomForestRegressor()  # no tuning of the pararameters but it should be done this is example of validation on time series
-        #     model.fit(X_train_fold, y_train_fold)
-        #     y_pred = model.predict(X_val_fold)
-        #     mse = mean_squared_error(y_val_fold, y_pred)
-        #     cv_mse_scores.append(mse)
-        #
-        #     print(f"CV Fold {i + 1} - MSE: {mse:.6f}")
 
         # Train the model to predict values differences
         model = LinearRegression()
@@ -186,7 +169,10 @@ class RegressionTreeTimeSeriesHandler(LinearRegressionBase):
         x = train_df[[self.column_name_lagged]]
         y = train_df["values_diff"]
 
-        model = DecisionTreeRegressor(max_depth=self.max_tree_depth)
+        model = DecisionTreeRegressor(
+            max_depth=self.max_tree_depth,
+            random_state=42,  # so it's possible to reproduce results
+        )
         model.fit(x, y)
 
         # Get statistics for validation and train sets

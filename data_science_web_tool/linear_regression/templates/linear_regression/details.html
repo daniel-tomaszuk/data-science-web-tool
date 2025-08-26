@@ -129,14 +129,14 @@
             <div class="col-md-9">
                 <div class="card h-100">
                     <div class="card-body">
-                        <h5 class="card-title">Time series plots for {{ object }}</h5>
-                            {% if base64_image %}
-                                <div class="mt-4">
-                                    <img id="plotResult" src="{{ base64_image }}" alt="Plot of {{ base64_image }}" class="img-fluid rounded">
-                                </div>
-                            {% else %}
-                                <p class="text-muted mt-3">No image available.</p>
-                            {% endif %}
+                        <h5 class="card-title">Time series plots for {{ object }}.<br>Created at {{ timezone_now }}</h5>
+                        {% if base64_image %}
+                            <div class="mt-4">
+                                <img id="plotResult" src="{{ base64_image }}" alt="Plot of {{ base64_image }}" class="img-fluid rounded">
+                            </div>
+                        {% else %}
+                            <p class="text-muted mt-3">No image available.</p>
+                        {% endif %}
                     </div>
                 </div>
             </div>
@@ -168,6 +168,23 @@
                         <p><strong>Slope:</strong> {{ slope }}</p>
                         <p><strong>Intercept:</strong> {{ intercept }}</p>
 
+                    </div>
+                </div>
+            </div>
+        </div>
+        <br>
+        <div class="row">
+            <div class="md-12">
+                <div class="card h-100">
+                    <div class="card-body">
+                       <h5 class="card-title">Zoomed time series plots for {{ object }}.<br>Created at {{ timezone_now }}</h5>
+                        {% if base64_image %}
+                            <div class="mt-4">
+                                <img id="plotResult" src="{{ base64_image_zoom }}" alt="Plot of {{ base64_image }} zoomed" class="img-fluid rounded">
+                            </div>
+                        {% else %}
+                            <p class="text-muted mt-3">No zoomed image available.</p>
+                        {% endif %}
                     </div>
                 </div>
             </div>

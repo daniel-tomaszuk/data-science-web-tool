@@ -6,6 +6,7 @@ import pandas as pd
 import seaborn as sns
 from django.shortcuts import get_object_or_404
 from django.shortcuts import redirect
+from django.utils import timezone
 from django.views.generic import DetailView
 from rest_framework.exceptions import ValidationError
 from rest_framework.generics import CreateAPIView
@@ -22,6 +23,14 @@ class LinearRegressionView(DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        context["timezone_now"] = (
+            timezone.now()
+            .replace(microsecond=0)
+            .isoformat(
+                sep=" ",
+            )
+            .replace("+00:00", "")
+        )
         context["statistics"] = self.object.get_statistics()
         context["regression_columns_options"] = [
             column_name
@@ -43,7 +52,12 @@ class LinearRegressionView(DetailView):
             base64_image: str = self._create_regression_plot(
                 linear_regression_result=linear_regression_result,
             )
+            base64_image_zoom: str = self._create_regression_plot(
+                linear_regression_result=linear_regression_result,
+                zoom_window=10 + linear_regression_result.lag_size + linear_regression_result.forecast_horizon,
+            )
             context["base64_image"] = base64_image
+            context["base64_image_zoom"] = base64_image_zoom
             context["linear_regression_target_column"] = linear_regression_result.target_column
             context["linear_regression_lag"] = linear_regression_result.lag_size
             context["used_model_type"] = linear_regression_result.model_type
@@ -55,8 +69,11 @@ class LinearRegressionView(DetailView):
 
         return context
 
-    def _create_regression_plot(self, linear_regression_result: LinearRegressionTimeSeriesResult):
+    def _create_regression_plot(self, linear_regression_result: LinearRegressionTimeSeriesResult, zoom_window: int = 0):
         df = self.object.get_df()
+        if zoom_window:
+            df = df.iloc[-zoom_window:]
+
         target_column: str = linear_regression_result.target_column
         forecast_horizon_data = linear_regression_result.forecast or []
 
@@ -67,8 +84,11 @@ class LinearRegressionView(DetailView):
         df["Date"] = pd.to_datetime(df["Date"])
         index = list(df.Date)
 
-        plt.figure(figsize=(12, 8))
+        plot_size = (12, 8)
+        if zoom_window:
+            plot_size = (12, 6)
 
+        plt.figure(figsize=plot_size)
         sns.lineplot(
             x=index,
             y=list(df[target_column]),
@@ -80,11 +100,12 @@ class LinearRegressionView(DetailView):
             label=f"Lagged values for {target_column}",
         )
 
-        train_end = int(len(index) * linear_regression_result.train_percentage // 100)
-        ax.axvline(index[train_end], color="red", linestyle="-.", label="Train/Val Split")
+        if not zoom_window:
+            train_end = int(len(index) * linear_regression_result.train_percentage // 100)
+            ax.axvline(index[train_end], color="red", linestyle="-.", label="Train/Val Split")
 
-        val_end = train_end + int(len(index) * linear_regression_result.validation_percentage // 100)
-        ax.axvline(index[val_end], color="blue", linestyle="-.", label="Val/Test Split")
+            val_end = train_end + int(len(index) * linear_regression_result.validation_percentage // 100)
+            ax.axvline(index[val_end], color="blue", linestyle="-.", label="Val/Test Split")
 
         if len(forecast_horizon_data):
             step = (index[-1] - index[-2]) if len(index) > 1 else pd.Timedelta(days=1)
@@ -96,22 +117,12 @@ class LinearRegressionView(DetailView):
                 linestyle="--",
             )
 
-        # if linear_regression_result.slope is not None and linear_regression_result.intercept is not None:
-        #     base_date = index[0]
-        #     base_ordinal = base_date.toordinal()
-        #
-        #     ordinal_index = [d.toordinal() - base_ordinal for d in index]
-        #     linear_space = np.linspace(min(ordinal_index), max(ordinal_index), 100)
-        #     y_regression_values = linear_regression_result.slope * linear_space + linear_regression_result.intercept
-        #     date_space = [base_date + timedelta(days=int(d)) for d in linear_space]
-        #
-        #     sns.lineplot(x=date_space, y=y_regression_values, label="Linear Regression Line", linestyle=":")
-
         plt.xticks(rotation=45)
         plt.gcf().autofmt_xdate()
         plt.grid(True)
         plt.xlabel("Date")
         plt.ylabel(f"{target_column} Values")
+        plt.legend(loc="upper left")
         plt.tight_layout()
 
         # Save the plot as a base64 string

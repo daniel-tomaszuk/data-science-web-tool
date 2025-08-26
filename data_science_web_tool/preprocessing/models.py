@@ -87,7 +87,7 @@ class Data(models.Model):
         return df
 
     def __str__(self) -> str:
-        return f"Data `{self.name}` created at {self.created_at}"
+        return f"Data `{self.name}`"
 
 
 class DataUpload(models.Model):
