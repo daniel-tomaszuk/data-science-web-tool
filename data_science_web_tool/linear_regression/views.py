@@ -107,6 +107,22 @@ class LinearRegressionView(DetailView):
             val_end = train_end + int(len(index) * linear_regression_result.validation_percentage // 100)
             ax.axvline(index[val_end], color="blue", linestyle="-.", label="Val/Test Split")
 
+            if linear_regression_result.model_type == LinearRegressionTimeSeriesResult.REGRESSION_TREE_MODEL:
+                val_vals = list(linear_regression_result.val_tree_levels.values())
+                val_idx = index[train_end:val_end][: len(val_vals)]
+
+                test_vals = list(linear_regression_result.test_tree_levels.values())
+                test_idx = index[val_end::][: len(test_vals)]
+
+                plt.step(
+                    val_idx + test_idx,
+                    val_vals[: len(val_idx)] + test_vals,
+                    where="post",
+                    linewidth=0.75,
+                    label="Tree levels",
+                    color="gray",
+                )
+
         if len(forecast_horizon_data):
             step = (index[-1] - index[-2]) if len(index) > 1 else pd.Timedelta(days=1)
             forecast_index = [index[-1] + step * i for i in range(len(forecast_horizon_data))]
@@ -198,6 +214,8 @@ class LinearRegressionTimeSeriesCreateAPIView(CreateAPIView):
             test_predictions=dict(model_metadata["test_predictions"]),
             slope=model_metadata.get("slope"),
             intercept=model_metadata.get("intercept"),
+            val_tree_levels=dict(model_metadata["val_tree_levels"]),
+            test_tree_levels=dict(model_metadata["test_tree_levels"]),
             **model_metadata["val_statistics"],
             **model_metadata["test_statistics"],
         )

@@ -40,7 +40,11 @@ class LinearRegressionBase:
         self.validation_percentage = validation_percentage
         self.test_percentage = test_percentage
 
-    def _forecast_future_values(self, df: pd.DataFrame, model: DecisionTreeRegressor | LinearRegression) -> list:
+    def _forecast_future_values(
+        self,
+        full_df: pd.DataFrame,
+        model: DecisionTreeRegressor | LinearRegression,
+    ) -> list:
         """
         Tries to predict n future value by predicting n-1 future value and appending it to the prediction list.
         """
@@ -49,7 +53,7 @@ class LinearRegressionBase:
             return future_predictions
 
         p = int(self.lag_size)
-        history = deque(df[self.column_name].iloc[-p:].astype(float).tolist(), maxlen=p)
+        history = deque(full_df[self.column_name].iloc[-p:].astype(float).tolist(), maxlen=p)
         for _ in range(self.forecast_horizon):
             x_in = np.array([[history[0]]])
             delta_hat = float(model.predict(x_in)[0])  # Δ^{(p)} = y_t - y_{t-p}
@@ -86,8 +90,10 @@ class LinearRegressionBase:
         model: LinearRegression | DecisionTreeRegressor,
         keys_prefix: str = "",
     ) -> tuple[pd.DataFrame, dict]:
-        # model predicts the differences
-        predictions = df[self.column_name_lagged] + model.predict(df[[self.column_name_lagged]])
+        # model predicts the differences, value = lag + delta
+        X = df[[self.column_name_lagged]]
+        delta_hat = model.predict(X)
+        predictions = df[self.column_name_lagged] + delta_hat
         actual = df[self.column_name]
         return predictions, {
             keys_prefix + "r_2": r2_score(actual, predictions),
@@ -108,14 +114,20 @@ class LinearRegressionTimeSeriesHandler(LinearRegressionBase):
         df[self.column_name_lagged] = df[self.column_name].shift(self.lag_size)
         df["values_diff"] = df[self.column_name] - df[self.column_name_lagged]
         df.dropna(inplace=True)
-        df.reset_index(inplace=True)
+        # df.reset_index(inplace=True)
 
         train_df, val_df, test_df = self._get_model_data_sets(df)
-        model_metadata, forecast = self._linear_regression(train_df, val_df, test_df)
+        model_metadata, forecast = self._linear_regression(
+            df,
+            train_df,
+            val_df,
+            test_df,
+        )
         return model_metadata, forecast
 
     def _linear_regression(
         self,
+        full_df: pd.DataFrame,
         train_df: pd.DataFrame,
         val_df: pd.DataFrame,
         test_df: pd.DataFrame,
@@ -145,7 +157,7 @@ class LinearRegressionTimeSeriesHandler(LinearRegressionBase):
             "intercept": model.intercept_,  # b
         }
 
-        future_forecast = self._forecast_future_values(test_df, model)
+        future_forecast = self._forecast_future_values(full_df, model)
         return model_metadata, future_forecast
 
 
@@ -159,19 +171,31 @@ class RegressionTreeTimeSeriesHandler(LinearRegressionBase):
         df[self.column_name_lagged] = df[self.column_name].shift(self.lag_size)
         df["values_diff"] = df[self.column_name] - df[self.column_name_lagged]
         df.dropna(inplace=True)
-        df.reset_index(inplace=True)
+        # df.reset_index(inplace=True)
 
         train_df, val_df, test_df = self._get_model_data_sets(df)
-        model_metadata, forecast = self._regression_tree(train_df, val_df, test_df)
+        model_metadata, forecast = self._regression_tree(
+            df,
+            train_df,
+            val_df,
+            test_df,
+        )
         return model_metadata, forecast
 
-    def _regression_tree(self, train_df: pd.DataFrame, val_df: pd.DataFrame, test_df: pd.DataFrame) -> tuple:
+    def _regression_tree(
+        self,
+        full_df: pd.DataFrame,
+        train_df: pd.DataFrame,
+        val_df: pd.DataFrame,
+        test_df: pd.DataFrame,
+    ) -> tuple:
         x = train_df[[self.column_name_lagged]]
         y = train_df["values_diff"]
 
         model = DecisionTreeRegressor(
             max_depth=self.max_tree_depth,
             random_state=42,  # so it's possible to reproduce results
+            min_samples_leaf=10,
         )
         model.fit(x, y)
 
@@ -188,7 +212,23 @@ class RegressionTreeTimeSeriesHandler(LinearRegressionBase):
             "val_statistics": val_statistics,
             "test_predictions": test_predictions,
             "test_statistics": test_statistics,
+            "val_tree_levels": self.get_tree_step_series(val_df, model),
+            "test_tree_levels": self.get_tree_step_series(test_df, model),
         }
 
-        future_forecast = self._forecast_future_values(test_df, model)
+        future_forecast = self._forecast_future_values(full_df, model)
         return model_metadata, future_forecast
+
+    def get_tree_step_series(
+        self,
+        df: pd.DataFrame,
+        model: DecisionTreeRegressor,
+    ) -> pd.Series:
+        """
+        Gets tree levels.
+        """
+        X = df[[self.column_name_lagged]]
+        y_hat = pd.Series(model.predict(X), index=df.index, name="tree_delta_hat")
+        levels = df[self.column_name_lagged] + y_hat
+        levels.name = "tree_levels"
+        return levels

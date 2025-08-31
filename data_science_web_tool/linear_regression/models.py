@@ -38,6 +38,9 @@ class LinearRegressionTimeSeriesResult(models.Model):
     validation_percentage = models.FloatField(blank=True, null=True)
     test_percentage = models.FloatField(blank=True, null=True)
 
+    val_tree_levels = models.JSONField(blank=True, null=True)
+    test_tree_levels = models.JSONField(blank=True, null=True)
+
     val_r_2 = models.FloatField(blank=True, null=True, help_text="R2 score for validation data")
     val_mse = models.FloatField(blank=True, null=True, help_text="Mean squared error for validation data")
     val_mae = models.FloatField(blank=True, null=True, help_text="Mean absolute error for validation data")
