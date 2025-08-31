@@ -54,7 +54,7 @@ class LinearRegressionView(DetailView):
             )
             base64_image_zoom: str = self._create_regression_plot(
                 linear_regression_result=linear_regression_result,
-                zoom_window=10 + linear_regression_result.lag_size + linear_regression_result.forecast_horizon,
+                zoom_window=20 + linear_regression_result.lag_size + linear_regression_result.forecast_horizon,
             )
             context["base64_image"] = base64_image
             context["base64_image_zoom"] = base64_image_zoom
@@ -100,23 +100,35 @@ class LinearRegressionView(DetailView):
             label=f"Lagged values for {target_column}",
         )
 
+        train_end = int(len(index) * linear_regression_result.train_percentage // 100)
+        val_end = train_end + int(len(index) * linear_regression_result.validation_percentage // 100)
         if not zoom_window:
-            train_end = int(len(index) * linear_regression_result.train_percentage // 100)
             ax.axvline(index[train_end], color="red", linestyle="-.", label="Train/Val Split")
-
-            val_end = train_end + int(len(index) * linear_regression_result.validation_percentage // 100)
             ax.axvline(index[val_end], color="blue", linestyle="-.", label="Val/Test Split")
 
-            if linear_regression_result.model_type == LinearRegressionTimeSeriesResult.REGRESSION_TREE_MODEL:
+        if linear_regression_result.model_type == LinearRegressionTimeSeriesResult.REGRESSION_TREE_MODEL:
+            if not zoom_window:
                 val_vals = list(linear_regression_result.val_tree_levels.values())
                 val_idx = index[train_end:val_end][: len(val_vals)]
 
                 test_vals = list(linear_regression_result.test_tree_levels.values())
                 test_idx = index[val_end::][: len(test_vals)]
-
                 plt.step(
                     val_idx + test_idx,
                     val_vals[: len(val_idx)] + test_vals,
+                    where="post",
+                    linewidth=0.75,
+                    label="Tree levels",
+                    color="gray",
+                )
+            else:
+                tree_levels_vals = (
+                    list(linear_regression_result.val_tree_levels.values())
+                    + list(linear_regression_result.test_tree_levels.values())
+                )[-len(index) :]
+                plt.step(
+                    index,
+                    tree_levels_vals,
                     where="post",
                     linewidth=0.75,
                     label="Tree levels",
@@ -214,8 +226,8 @@ class LinearRegressionTimeSeriesCreateAPIView(CreateAPIView):
             test_predictions=dict(model_metadata["test_predictions"]),
             slope=model_metadata.get("slope"),
             intercept=model_metadata.get("intercept"),
-            val_tree_levels=dict(model_metadata["val_tree_levels"]),
-            test_tree_levels=dict(model_metadata["test_tree_levels"]),
+            val_tree_levels=dict(model_metadata.get("val_tree_levels", {})),
+            test_tree_levels=dict(model_metadata.get("test_tree_levels", {})),
             **model_metadata["val_statistics"],
             **model_metadata["test_statistics"],
         )
