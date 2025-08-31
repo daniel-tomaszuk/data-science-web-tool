@@ -1,4 +1,3 @@
-import numpy as np
 import pandas as pd
 import statsmodels.api as sm
 import statsmodels.stats.diagnostic as smd
@@ -13,9 +12,9 @@ class ADFTestHandler:
                 "cv10": -1.616,
             },
             "n_obs_lte_500": {
-                "cv1": np.nan,
-                "cv5": np.nan,
-                "cv10": np.nan,
+                "cv1": -2.661,
+                "cv5": -1.955,
+                "cv10": -1.609,
             },
         },
         "c": {
@@ -25,9 +24,9 @@ class ADFTestHandler:
                 "cv10": -2.568,
             },
             "n_obs_lte_500": {
-                "cv1": np.nan,
-                "cv5": np.nan,
-                "cv10": np.nan,
+                "cv1": -3.724,
+                "cv5": -2.986,
+                "cv10": -2.633,
             },
         },
         "t": {
@@ -37,9 +36,9 @@ class ADFTestHandler:
                 "cv10": -3.128,
             },
             "n_obs_lte_500": {
-                "cv1": np.nan,
-                "cv5": np.nan,
-                "cv10": np.nan,
+                "cv1": -4.375,
+                "cv5": -3.589,
+                "cv10": -3.238,
             },
         },
     }
@@ -112,4 +111,4 @@ class ADFTestHandler:
         critical_values = self.CRITICAL_VALUES_CONST[self.version]
         if n_observations > 500:
             return critical_values["n_obs_gt_500"].values()
-        return critical_values["n_obs_lt_500"].values()
+        return critical_values["n_obs_lte_500"].values()

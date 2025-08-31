@@ -195,7 +195,7 @@ class RegressionTreeTimeSeriesHandler(LinearRegressionBase):
         model = DecisionTreeRegressor(
             max_depth=self.max_tree_depth,
             random_state=42,  # so it's possible to reproduce results
-            min_samples_leaf=10,
+            min_samples_leaf=100,
         )
         model.fit(x, y)
 
