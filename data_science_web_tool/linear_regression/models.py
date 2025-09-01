@@ -9,6 +9,8 @@ class LinearRegressionTimeSeriesResult(models.Model):
     REGRESSION_TREE_MODEL = "regression_tree"
     LINEAR_REGRESSION_MODEL = "linear_regression"
 
+    DIRECT_TARGET_MODE = "direct"
+    DELTA_TARGET_MODE = "delta"
     SUPPORTED_HANDLERS = {
         "linear_regression": LinearRegressionTimeSeriesHandler,
         "regression_tree": RegressionTreeTimeSeriesHandler,
@@ -27,6 +29,7 @@ class LinearRegressionTimeSeriesResult(models.Model):
     lag_size = models.IntegerField(blank=True, null=True)
     max_tree_depth = models.IntegerField(blank=True, null=True)
     forecast_horizon = models.IntegerField(blank=True, null=True)
+    target_mode = models.CharField(blank=True, null=True, default=DELTA_TARGET_MODE)
 
     train_values = models.JSONField(blank=True, null=True, help_text="Train data set")
     val_predictions = models.JSONField(blank=True, null=True, help_text="Validation data set predictions")

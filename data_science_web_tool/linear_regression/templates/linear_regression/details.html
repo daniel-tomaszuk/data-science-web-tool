@@ -71,6 +71,15 @@
                                 <input type="number" class="form-control" id="maxDepth" name="max_tree_depth" min="1" value="{{ max_tree_depth|default:1 }}">
                             </div>
                         </div>
+                        <div class="col-md-6" id="targetModeParamWrapper" style="min-height: 50px;">
+                            <div id="targetModeDiv" style="opacity: 0; pointer-events: none; transition: opacity 0.3s;">
+                                <label for="targetMode" class="form-label">Target Mode</label>
+                                <select class="form-select" id="targetMode" name="target_mode">
+                                    <option value="delta" {% if target_mode == 'delta' %} selected {% endif %}>Delta</option>
+                                    <option value="direct" {% if target_mode == 'direct' %} selected {% endif %}>Direct</option>
+                                </select>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -201,12 +210,17 @@
     const modelTypeSelect = document.getElementById("modelType");
     function toggleMaxDepthParam() {
         const maxDepthParam = document.getElementById("maxDepthParam");
+        const targetMode = document.getElementById("targetModeDiv");
         if (modelTypeSelect.value === "regression_tree") {
             maxDepthParam.style.opacity = "1";
             maxDepthParam.style.pointerEvents = "auto";
+            targetMode.style.opacity = "0";
+            targetMode.style.pointerEvents = "none";
         } else {
             maxDepthParam.style.opacity = "0";
             maxDepthParam.style.pointerEvents = "none";
+            targetMode.style.opacity = "0";
+            targetMode.style.pointerEvents = "none";
         }
     }
     modelTypeSelect.addEventListener("change", toggleMaxDepthParam);

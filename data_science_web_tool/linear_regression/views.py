@@ -40,6 +40,7 @@ class LinearRegressionView(DetailView):
         context["model_types"] = LinearRegressionTimeSeriesResult.MODEL_TYPES_CHOICES
 
         if linear_regression_result := self.object.linear_regression_timeseries_results.order_by("-created_at").first():
+            context["target_mode"] = linear_regression_result.target_mode
             context["linear_regression_statistics"] = {
                 **linear_regression_result.get_statistics(statistics_type="val"),
                 **linear_regression_result.get_statistics(statistics_type="test"),
@@ -198,6 +199,7 @@ class LinearRegressionTimeSeriesCreateAPIView(CreateAPIView):
         train_percentage = validated_data["train_percent"]
         validation_percentage = validated_data["val_percent"]
         test_percentage = validated_data["test_percent"]
+        target_mode = validated_data.get("target_mode", "delta")
 
         regression_handler = handler(
             data=data_instance,
@@ -208,6 +210,7 @@ class LinearRegressionTimeSeriesCreateAPIView(CreateAPIView):
             train_percentage=train_percentage,
             validation_percentage=validation_percentage,
             test_percentage=test_percentage,
+            target_mode=target_mode,
         )
         model_metadata, forecast = regression_handler.handle()
         LinearRegressionTimeSeriesResult.objects.create(
@@ -217,6 +220,7 @@ class LinearRegressionTimeSeriesCreateAPIView(CreateAPIView):
             lag_size=lag_size,
             max_tree_depth=max_tree_depth,
             forecast_horizon=forecast_horizon,
+            target_mode=target_mode,
             model_type=validated_data["model_type"],
             train_values=dict(model_metadata["train_values"]),
             train_percentage=train_percentage,

@@ -1,4 +1,5 @@
 from collections import deque
+from typing import Literal
 
 import numpy as np
 import pandas as pd
@@ -29,6 +30,7 @@ class LinearRegressionBase:
         train_percentage: int | None = None,
         validation_percentage: int | None = None,
         test_percentage: int | None = None,
+        target_mode: Literal["delta", "direct"] = "delta",
     ):
         self.data = data
         self.column_name = column_name
@@ -39,6 +41,8 @@ class LinearRegressionBase:
         self.train_percentage = train_percentage
         self.validation_percentage = validation_percentage
         self.test_percentage = test_percentage
+        self.target_mode = target_mode
+        print()
 
     def _forecast_future_values(
         self,
@@ -55,9 +59,13 @@ class LinearRegressionBase:
         p = int(self.lag_size)
         history = deque(full_df[self.column_name].iloc[-p:].astype(float).tolist(), maxlen=p)
         for _ in range(self.forecast_horizon):
-            x_in = np.array([[history[0]]])
-            delta_hat = float(model.predict(x_in)[0])  # Δ^{(p)} = y_t - y_{t-p}
-            next_level = history[0] + delta_hat  # y_t = y_{t-p} + Δ^{(p)}
+            x_in = np.array([[history[0]]], dtype=float)
+            y = float(model.predict(x_in)[0])
+            if self.target_mode == "delta":
+                next_level = history[0] + y
+            else:
+                next_level = y
+
             history.append(next_level)
             future_predictions.append(next_level)
 
@@ -92,8 +100,12 @@ class LinearRegressionBase:
     ) -> tuple[pd.DataFrame, dict]:
         # model predicts the differences, value = lag + delta
         X = df[[self.column_name_lagged]]
-        delta_hat = model.predict(X)
-        predictions = df[self.column_name_lagged] + delta_hat
+        raw_pred = model.predict(X)
+        if self.target_mode == "delta":
+            predictions = df[self.column_name_lagged] + raw_pred
+        else:
+            predictions = pd.Series(raw_pred, index=df.index)
+
         actual = df[self.column_name]
         return predictions, {
             keys_prefix + "r_2": r2_score(actual, predictions),
@@ -133,7 +145,7 @@ class LinearRegressionTimeSeriesHandler(LinearRegressionBase):
         test_df: pd.DataFrame,
     ) -> tuple:
         x = train_df[[self.column_name_lagged]]
-        y = train_df["values_diff"]
+        y = train_df["values_diff"] if self.target_mode == "delta" else train_df[self.column_name]
 
         # Train the model to predict values differences
         model = LinearRegression()
@@ -190,12 +202,12 @@ class RegressionTreeTimeSeriesHandler(LinearRegressionBase):
         test_df: pd.DataFrame,
     ) -> tuple:
         x = train_df[[self.column_name_lagged]]
-        y = train_df["values_diff"]
+        y = train_df["values_diff"] if self.target_mode == "delta" else train_df[self.column_name]
 
         model = DecisionTreeRegressor(
             max_depth=self.max_tree_depth,
             random_state=42,  # so it's possible to reproduce results
-            min_samples_leaf=100,
+            min_samples_leaf=10,
         )
         model.fit(x, y)
 
@@ -228,7 +240,11 @@ class RegressionTreeTimeSeriesHandler(LinearRegressionBase):
         Gets tree levels.
         """
         X = df[[self.column_name_lagged]]
-        y_hat = pd.Series(model.predict(X), index=df.index, name="tree_delta_hat")
-        levels = df[self.column_name_lagged] + y_hat
+        y_hat = pd.Series(model.predict(X), index=df.index, name="tree_pred_raw")
+        if self.target_mode == "delta":
+            levels = df[self.column_name_lagged] + y_hat
+        else:
+            levels = y_hat
+
         levels.name = "tree_levels"
         return levels
