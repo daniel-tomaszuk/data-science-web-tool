@@ -40,8 +40,8 @@ class GarchResult(models.Model):
     model_fit_ljung_box_test_results = models.JSONField(blank=True, null=True)
     model_fit_ljung_box_test_results_squared = models.JSONField(blank=True, null=True)
 
-    p_mean_equation_lags = models.IntegerField(default=0)
-    q_variance_equation_lags = models.IntegerField(null=True, blank=True)
+    arch_order = models.IntegerField(default=0)
+    garch_order = models.IntegerField(null=True, blank=True)
 
     model_result_resid = models.JSONField(blank=True, null=True)
     model_result_conditional_volatility = models.JSONField(blank=True, null=True)

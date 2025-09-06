@@ -80,8 +80,8 @@ class GarchResultView(DetailView):
             context["summary"] = garch_result.summary
 
             self._set_test_results(garch_result, context)
-            context["p_mean_equation_lags"] = garch_result.p_mean_equation_lags
-            context["q_variance_equation_lags"] = garch_result.q_variance_equation_lags
+            context["arch_order"] = garch_result.arch_order
+            context["garch_order"] = garch_result.garch_order
             context["forecast_horizon"] = garch_result.forecast_horizon
             context["train_percentage"] = garch_result.train_percentage
             context["validation_percentage"] = garch_result.validation_percentage
@@ -313,7 +313,7 @@ class GarchResultView(DetailView):
         plt.plot(
             forecast_index,
             forecast_df.forecast_means,
-            label=f"Forecast {result.model_type.upper()}({result.p_mean_equation_lags},{result.q_variance_equation_lags})",
+            label=f"Forecast {result.model_type.upper()}({result.arch_order},{result.garch_order})",
             color="blue",
             linestyle="--",
         )
@@ -322,9 +322,7 @@ class GarchResultView(DetailView):
             forecast_index, forecast_ci_lower, forecast_ci_upper, color="blue", alpha=0.2, label="95% CI forecast"
         )
 
-        plt.title(
-            f"Forecast {result.model_type.upper()}({result.p_mean_equation_lags},{result.q_variance_equation_lags})"
-        )
+        plt.title(f"Forecast {result.model_type.upper()}({result.arch_order},{result.garch_order})")
         plt.xlabel("Date")
         plt.ylabel("Returns")
         plt.legend()
@@ -366,9 +364,7 @@ class GarchResultView(DetailView):
         )
 
         plt.axvline(x=forecast_index[0], color="red", linestyle=":", label="Forecast start")
-        plt.title(
-            f"Forecast {result.model_type.upper()}({result.p_mean_equation_lags},{result.q_variance_equation_lags}) Zoom"
-        )
+        plt.title(f"Forecast {result.model_type.upper()}({result.arch_order},{result.garch_order}) Zoom")
         plt.xlabel("Date")
         plt.ylabel("Returns")
         plt.legend(loc="lower left")
@@ -439,10 +435,10 @@ class GarchResultCreateAPIView(CreateAPIView):
         validation_percentage = validated_data["val_percent"]
         test_percentage = validated_data["test_percent"]
 
-        p_mean_equation_lags: int = validated_data["p_mean_equation_lags"]
-        q_variance_equation_lags: int = validated_data.get("q_variance_equation_lags", 0)
+        arch_order: int = validated_data["arch_order"]
+        garch_order: int = validated_data.get("garch_order", 0)
         if validated_data["model_type"] == GarchResult.ARCH_MODEL:
-            q_variance_equation_lags = 0
+            garch_order = 0
 
         model_handler = handler(
             data=data_instance,
@@ -451,8 +447,8 @@ class GarchResultCreateAPIView(CreateAPIView):
             train_percentage=train_percentage,
             validation_percentage=validation_percentage,
             test_percentage=test_percentage,
-            p_mean_equation_lags=p_mean_equation_lags,
-            q_variance_equation_lags=q_variance_equation_lags,
+            arch_order=arch_order,
+            garch_order=garch_order,
             tests_lags=tests_lags,
         )
         model_metadata, forecast = model_handler.handle()
@@ -472,8 +468,8 @@ class GarchResultCreateAPIView(CreateAPIView):
             raw_data_ljung_box_test_results_squared=model_metadata["raw_data_ljung_box_test_results_squared"],
             model_fit_ljung_box_test_results=model_metadata["model_fit_ljung_box_test_results"],
             model_fit_ljung_box_test_results_squared=model_metadata["model_fit_ljung_box_test_results_squared"],
-            p_mean_equation_lags=p_mean_equation_lags,
-            q_variance_equation_lags=q_variance_equation_lags,
+            arch_order=arch_order,
+            garch_order=garch_order,
             model_result_resid=model_metadata["model_result_resid"],
             model_result_conditional_volatility=model_metadata["model_result_conditional_volatility"],
             acf_lags=acf_lags,

@@ -1,5 +1,6 @@
-from garch.models import GarchResult
 from rest_framework import serializers
+
+from garch.models import GarchResult
 
 
 class GarchResultCreateSerializer(serializers.Serializer):
@@ -8,8 +9,8 @@ class GarchResultCreateSerializer(serializers.Serializer):
     target_column = serializers.CharField()
     object_id = serializers.IntegerField(required=True)
 
-    p_mean_equation_lags = serializers.IntegerField(required=True, min_value=0)
-    q_variance_equation_lags = serializers.IntegerField(required=False, min_value=0)
+    arch_order = serializers.IntegerField(required=True, min_value=0)
+    garch_order = serializers.IntegerField(required=False, min_value=0)
 
     acf_lags = serializers.IntegerField(required=False, min_value=1, default=36)
     tests_lags = serializers.IntegerField(required=False, min_value=1, default=36)
@@ -38,8 +39,9 @@ class GarchResultCreateSerializer(serializers.Serializer):
             raise serializers.ValidationError("Test data set can not be empty.")
 
         if train_percent + validation_percent + test_percent > 100:
-            raise serializers.ValidationError("Sum of train, validation and test percentages cannot be greater than 100%")
+            raise serializers.ValidationError(
+                "Sum of train, validation and test percentages cannot be greater than 100%"
+            )
 
         if train_percent + validation_percent + test_percent < 0:
             raise serializers.ValidationError("Sum of train, validation and test percentages cannot be less than 0%")
-

@@ -79,10 +79,10 @@
                 <div class="row">
                     <!-- P-mean equation lags -->
                     <div class="col-6">
-                        <label for="pMeanEquationLags" class="form-label">P Mean Equation Lags</label>
-                        <input type="number" class="form-control" id="pMeanEquationLags" name="p_mean_equation_lags"
-                               {% if p_mean_equation_lags %}
-                                   value="{{ p_mean_equation_lags }}"
+                        <label for="archOrder" class="form-label">ARCH Order</label>
+                        <input type="number" class="form-control" id="archOrder" name="arch_order"
+                               {% if arch_order %}
+                                   value="{{ arch_order }}"
                                {% else %}
                                    value="1"
                                {% endif %}
@@ -90,11 +90,11 @@
                     </div>
                     <!-- Q-variance equation lags -->
                     <div class="col-6">
-                        <div id="qVarianceEquationLagsWrapper" style="opacity: 0; pointer-events: none; transition: opacity 0.3s;">
-                            <label for="qVarianceEquationLags" class="form-label">Q Variance Equation Lags</label>
-                            <input type="number" class="form-control" id="qVarianceEquationLags" name="q_variance_equation_lags"
-                                   {% if q_variance_equation_lags %}
-                                       value="{{ q_variance_equation_lags }}"
+                        <div id="garchOrder" style="opacity: 0; pointer-events: none; transition: opacity 0.3s;">
+                            <label for="qVarianceEquationLags" class="form-label">GARCH Order</label>
+                            <input type="number" class="form-control" id="qVarianceEquationLags" name="garch_order"
+                                   {% if garch_order %}
+                                       value="{{ garch_order }}"
                                    {% else %}
                                        value="0"
                                    {% endif %}
@@ -294,7 +294,7 @@
             {% endif %}
             {% if summary %}
                 <div class="card mb-4 overflow-visible h-auto" style="max-height: none;">
-                    <div class="card-header text-center"><strong>Model {{ used_model_type|upper }}({{ p_mean_equation_lags }}, {{ q_variance_equation_lags }}) Summary</strong></div>
+                    <div class="card-header text-center"><strong>Model {{ used_model_type|upper }}({{ arch_order }}, {{ garch_order }}) Summary</strong></div>
                     <div class="card-body overflow-visible h-auto" style="max-height: none;">
                         <div class="row mt-4">
                             <div class="col-7 m-0 p-0">
@@ -318,7 +318,7 @@
                             </div>
                             <div class="col-5 m-0 p-0">
                                 <div>
-                                    <h5>Model {{ used_model_type|upper }}({{ p_mean_equation_lags }}, {{ q_variance_equation_lags }}) Data Engle's ARCH test</h5>
+                                    <h5>Model {{ used_model_type|upper }}({{ arch_order }}, {{ garch_order }}) Data Engle's ARCH test</h5>
                                     {% if model_fit_engle_arch_test_results %}
                                         <p class="m-1">P-Value: {{ model_fit_engle_arch_test_results.p_value|floatformat:6 }}</p>
                                         <p class="m-1">LM Statistics: {{ model_fit_engle_arch_test_results.lm_statistics|floatformat:2 }}</p>
@@ -333,7 +333,7 @@
                                 </div>
                                 <hr>
                                 <div>
-                                    <h5>Model {{ used_model_type|upper }}({{ p_mean_equation_lags }}, {{ q_variance_equation_lags }}) Data Ljung-Box Test</h5>
+                                    <h5>Model {{ used_model_type|upper }}({{ arch_order }}, {{ garch_order }}) Data Ljung-Box Test</h5>
                                     {% if model_fit_ljung_box_test_results %}
                                         <table class="table table-bordered table-striped table-hover align-middle">
                                             <thead class="table-light">
@@ -366,7 +366,7 @@
                                 </div>
                                 <hr>
                                 <div>
-                                    <h5>Model {{ used_model_type|upper }}({{ p_mean_equation_lags }}, {{ q_variance_equation_lags }}) Data Ljung-Box Test - Squared</h5>
+                                    <h5>Model {{ used_model_type|upper }}({{ arch_order }}, {{ garch_order }}) Data Ljung-Box Test - Squared</h5>
                                     {% if model_fit_ljung_box_test_results_squared %}
                                         <table class="table table-bordered table-striped table-hover align-middle">
                                             <thead class="table-light">
@@ -404,7 +404,7 @@
             {% endif %}
             {% if time_series_acf_log_diffs_img_model_result %}
                 <div class="card mb-4">
-                    <div class="card-header text-center"><strong>Model {{ used_model_type|upper }}({{ p_mean_equation_lags }}, {{ q_variance_equation_lags }}) Result ACF of Log Diffs</strong></div>
+                    <div class="card-header text-center"><strong>Model {{ used_model_type|upper }}({{ arch_order }}, {{ garch_order }}) Result ACF of Log Diffs</strong></div>
                     <div class="card-body">
                         <img id="plotLogDiffsAcf"
                              src="{{ time_series_acf_log_diffs_img_model_result }}"
@@ -426,7 +426,7 @@
             {% endif %}
             {% if time_series_acf_log_diffs_img_squared_model_result %}
                 <div class="card mb-4">
-                    <div class="card-header text-center"><strong>Model {{ used_model_type|upper }}({{ p_mean_equation_lags }}, {{ q_variance_equation_lags }}) Result ACF of Log Diffs Squared</strong></div>
+                    <div class="card-header text-center"><strong>Model {{ used_model_type|upper }}({{ arch_order }}, {{ garch_order }}) Result ACF of Log Diffs Squared</strong></div>
                     <div class="card-body">
                         <img id="plotLogDiffsAcfToPower"
                              src="{{ time_series_acf_log_diffs_img_squared_model_result }}"
@@ -447,7 +447,7 @@
             {% endif %}
             {% if forecast_plot %}
                 <div class="card mb-4">
-                    <div class="card-header text-center"><strong>Model {{ used_model_type|upper }}({{ p_mean_equation_lags }}, {{ q_variance_equation_lags }}) Forecast Plot</strong></div>
+                    <div class="card-header text-center"><strong>Model {{ used_model_type|upper }}({{ arch_order }}, {{ garch_order }}) Forecast Plot</strong></div>
                     <div class="card-body text-center">
                         <img id="plotLogDiffsAcfToPower"
                              src="{{ forecast_plot }}"
@@ -459,7 +459,7 @@
             {% endif %}
             {% if forecast_plot_zoomed %}
                 <div class="card mb-4">
-                    <div class="card-header text-center"><strong>Model {{ used_model_type|upper }}({{ p_mean_equation_lags }}, {{ q_variance_equation_lags }}) Forecast Plot</strong></div>
+                    <div class="card-header text-center"><strong>Model {{ used_model_type|upper }}({{ arch_order }}, {{ garch_order }}) Forecast Plot</strong></div>
                     <div class="card-body text-center">
                         <img id="plotLogDiffsAcfToPower"
                              src="{{ forecast_plot_zoomed }}"
@@ -584,13 +584,13 @@
 <script>
     const modelTypeSelect = document.getElementById("modelType");
     function toggleQVarianceEquationLags() {
-        const qVarianceEquationLagsWrapper = document.getElementById("qVarianceEquationLagsWrapper");
+        const garchOrder = document.getElementById("garchOrder");
         if (modelTypeSelect.value === "garch") {
-            qVarianceEquationLagsWrapper.style.opacity = "1";
-            qVarianceEquationLagsWrapper.style.pointerEvents = "auto";
+            garchOrder.style.opacity = "1";
+            garchOrder.style.pointerEvents = "auto";
         } else {
-            qVarianceEquationLagsWrapper.style.opacity = "0";
-            qVarianceEquationLagsWrapper.style.pointerEvents = "none";
+            garchOrder.style.opacity = "0";
+            garchOrder.style.pointerEvents = "none";
         }
     }
     modelTypeSelect.addEventListener("change", toggleQVarianceEquationLags);

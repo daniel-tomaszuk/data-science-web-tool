@@ -25,8 +25,8 @@ class GarchHandlerBase:
         train_percentage: int | None = None,
         validation_percentage: int | None = None,
         test_percentage: int | None = None,
-        p_mean_equation_lags: int = 0,
-        q_variance_equation_lags: int = 0,
+        arch_order: int = 0,
+        garch_order: int = 0,
         tests_lags: int = 5,
     ):
         self.data = data
@@ -36,8 +36,8 @@ class GarchHandlerBase:
         self.train_percentage = train_percentage
         self.validation_percentage = validation_percentage
         self.test_percentage = test_percentage
-        self.p_mean_equation_lags = p_mean_equation_lags
-        self.q_variance_equation_lags = q_variance_equation_lags
+        self.arch_order = arch_order
+        self.garch_order = garch_order
         self.tests_lags = tests_lags
         self.model_type = None
 
@@ -150,8 +150,8 @@ class GarchHandlerBase:
         model_train_set = arch_model(
             train_df[f"{self.column_name}_log_diff"],
             vol=self.model_type.upper(),
-            p=self.p_mean_equation_lags,
-            q=self.q_variance_equation_lags,
+            p=self.arch_order,
+            q=self.garch_order,
             rescale=False,
         )
 
@@ -227,8 +227,8 @@ class GarchHandlerBase:
             model = arch_model(
                 extended_train,
                 vol=self.model_type,
-                p=self.p_mean_equation_lags,
-                q=self.q_variance_equation_lags,
+                p=self.arch_order,
+                q=self.garch_order,
                 rescale=False,
             )
             fit = model.fit(disp="off")
@@ -312,8 +312,8 @@ class GarchHandlerBase:
             model = arch_model(
                 data_for_model,
                 vol=self.model_type,
-                p=self.p_mean_equation_lags,
-                q=self.q_variance_equation_lags,
+                p=self.arch_order,
+                q=self.garch_order,
                 rescale=False,
             )
             model_result = model.fit(disp="off")
