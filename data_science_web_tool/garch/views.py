@@ -236,7 +236,7 @@ class GarchResultView(DetailView):
             acf_values = acf(acf_values, nlags=nlags)
 
         plt.figure(figsize=(12, 4))
-        plt.stem(range(len(acf_values)), acf_values)
+        plt.stem(range(1, len(acf_values)), acf_values[1:])
         plt.axhline(y=0, linestyle="-", color="black")
         plt.axhline(y=-1.96 / np.sqrt(len(df[target_column])), linestyle="--", color="gray")
         plt.axhline(y=1.96 / np.sqrt(len(df[target_column])), linestyle="--", color="gray")
