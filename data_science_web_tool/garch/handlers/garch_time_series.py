@@ -22,12 +22,12 @@ class GarchHandlerBase:
         train_percentage: int | None = None,
         validation_percentage: int | None = None,
         test_percentage: int | None = None,
-        arch_order: int = 0,  # p w wariancji
-        garch_order: int = 0,  # q w wariancji
+        arch_order: int = 0,
+        garch_order: int = 0,
         tests_lags: int = 5,
         mean_spec: str = "Constant",  # "Constant" lub "Zero"
-        mean_lags: int = 0,  # gdybyś chciał ARX -> ustaw >0 i mean_spec="ARX"
-        error_dist: str = "normal",  # rozważ: "StudentsT"
+        mean_lags: int = 0,
+        error_dist: str = "normal",
     ):
         self.data = data
         self.column_name = column_name
