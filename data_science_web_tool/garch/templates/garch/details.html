@@ -269,7 +269,6 @@
                             <p class="m-0 mt-1"><strong>Spike at lag k (outside the confidence band):</strong> autocorelation in mean equation is present. Consider adding AR(k) term to the mean equation.</p>
                         </div>
                     </div>
-
                 </div>
             {% endif %}
             {% if time_series_acf_log_diffs_img_squared %}
@@ -398,6 +397,26 @@
                                 </div>
                             </div>
                         </div>
+                    </div>
+                </div>
+            {% endif %}
+            {% if normal_dist_summary_html %}
+                <div class="card mb-4">
+                    <div class="card-header text-center"><strong>Residual diagnostics Model {{ used_model_type|upper }}({{ arch_order }}, {{ garch_order }})</strong></div>
+                    <div class="card-body text-center">
+                        <div class="row">
+                            <div class="col-6">
+                                {{ normal_dist_summary_html|safe }}
+                            </div>
+                            <div class="col-6 small alert alert-info">
+                                {{ normal_text_summary }}
+                            </div>
+                        </div>
+                        <img id="residualDiagnosticsPlots"
+                             src="{{ normal_dist_plots.grid }}"
+                             alt="Residual diagnostics plot"
+                             class="img-fluid rounded"
+                             style="max-height: 400px;">
                     </div>
                 </div>
             {% endif %}

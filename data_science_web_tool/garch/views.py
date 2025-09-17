@@ -11,6 +11,7 @@ from django.views.generic import DetailView
 from rest_framework.exceptions import ValidationError
 from rest_framework.generics import CreateAPIView
 from statsmodels.tsa.stattools import acf
+from utils.diagnostics.normal_distribution import residual_diagnostics
 
 from garch.handlers.garch_time_series import GarchTimeSeriesHandler
 from garch.models import GarchResult
@@ -33,12 +34,13 @@ class GarchResultView(DetailView):
         context["model_types"] = GarchResult.MODEL_TYPES_CHOICES
         context["validation_errors"] = self.request.session.pop("validation_errors", {})
 
-        garch_result = self.object.garch_results.order_by("-created_at").first()
+        garch_result: GarchResult = self.object.garch_results.order_by("-created_at").first()
         if garch_result:
             df = self.object.get_df()
 
             log_diff_column_name = f"{garch_result.target_column}_log_diff"
             df[log_diff_column_name] = np.log(df[garch_result.target_column]).diff()
+
             df.dropna(inplace=True)
             df.reset_index(inplace=True)
 
@@ -107,6 +109,10 @@ class GarchResultView(DetailView):
                 "test_mean_rmse": garch_result.test_mean_rmse,
                 "test_mean_mape": garch_result.test_mean_mape * 100 if garch_result.test_mean_mape else None,
                 "test_mean_smape": garch_result.test_mean_smape * 100 if garch_result.test_mean_smape else None,
+            }
+            context = {
+                **context,
+                **self._get_normal_distribution_info(result_instance=garch_result),
             }
             if garch_result.forecast_horizon > 0:
                 context["forecast_plot"], context["forecast_plot_zoomed"] = self._create_forecast_plots(
@@ -380,6 +386,38 @@ class GarchResultView(DetailView):
         zoom_plot: str = f"data:image/png;base64,{base64_img}"
 
         return main_plot, zoom_plot
+
+    def _get_normal_distribution_info(self, result_instance: GarchResult) -> dict:
+        res_std, summary, plots = residual_diagnostics(
+            residuals=result_instance.model_result_resid,
+            sigma=result_instance.model_result_conditional_volatility,
+            title=result_instance.target_column,
+            return_plots=True,
+            make_grid=True,
+        )
+
+        normal_text_summary: str = self._normality_summary(
+            jb_p=summary.p_value[0],
+            skew=summary.value[1],
+            ex_kurt=summary.value[2],
+        )
+        return {
+            "normal_dist_summary_html": summary.to_html(
+                classes="table table-sm table-responsive table-bordered text-center",
+                index=False,
+            ),
+            "normal_dist_plots": plots,
+            "normal_text_summary": normal_text_summary,
+        }
+
+    def _normality_summary(self, jb_p, skew, ex_kurt) -> str:
+        verdict = "reject normality" if jb_p < 0.05 else "do not reject normality"
+        skew_tag = "almost symmetric" if abs(skew) < 0.2 else ("right-skewed" if skew > 0 else "left-skewed")
+        tail_tag = "near-normal tails" if abs(ex_kurt) <= 0.5 else ("heavy-tails" if ex_kurt > 0 else "light-tails")
+        return (
+            f"JB p-value={jb_p:.2e} → {verdict}. "
+            f"Residuals are {skew_tag} (skew={skew:.2f}) with {tail_tag} (excess kurt={ex_kurt:.2f})."
+        )
 
     @staticmethod
     def _get_rounded_ljung_box_test_results(test_results: dict) -> list[tuple]:

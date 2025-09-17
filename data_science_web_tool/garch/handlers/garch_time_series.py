@@ -150,7 +150,8 @@ class GarchHandlerBase:
         model_fit_engle_arch_test_results = self.engle_arch_test(model_result=model_train_set_result)
         model_fit_ljung_box_test_results = self.ljung_box_test(model_result=model_train_set_result)
         model_fit_ljung_box_test_results_squared = self.ljung_box_test(
-            model_result=model_train_set_result, squared=True
+            model_result=model_train_set_result,
+            squared=True,
         )
 
         val_statistics = self._get_model_statistics(main_df=train_df, compare_df=val_df, keys_prefix="val_")
